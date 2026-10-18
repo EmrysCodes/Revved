@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://ui/pause_menu.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://ui/garage_menu.tscn" id="2_garage"]
 
 [sub_resource type="StyleBoxFlat" id="CardStyle"]
 bg_color = Color(0.035, 0.05, 0.075, 0.98)
@@ -111,9 +112,17 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Restart attempt"
 
+[node name="Garage" type="Button" parent="Overlay/Center/Card/Padding/Stack"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Garage / customize car"
+
 [node name="Hint" type="Label" parent="Overlay/Center/Card/Padding/Stack"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.76, 0.83, 1)
 theme_override_font_sizes/font_size = 16
 text = "Esc: resume    Tab / arrows: navigate    Enter: select"
 horizontal_alignment = 1
+
+[node name="Garage" parent="." instance=ExtResource("2_garage")]

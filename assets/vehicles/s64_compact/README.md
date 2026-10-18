@@ -22,3 +22,10 @@ road and barrier contact. This does not add independent wheel suspension.
 
 The retired Meshy model remains available in its original asset folder,
 but is no longer the player car.
+
+The pause menu's Garage now exposes the three body variants, four wheel
+styles, and six paint presets. Choices apply live to the car and its isolated
+3D preview and are stored alongside unit preferences in user://settings.cfg.
+Body variants use adjusted offsets to keep their wheel arches aligned with
+the shared wheel pivots. The two spoiler assets are included but are not yet
+exposed as a garage option.

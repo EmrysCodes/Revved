@@ -1,0 +1,189 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://ui/garage_menu.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://vehicles/s64_compact_visual.tscn" id="2_car"]
+
+[sub_resource type="Environment" id="Environment"]
+background_mode = 1
+background_color = Color(0.04, 0.06, 0.09, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.8, 0.85, 1, 1)
+ambient_light_energy = 0.7
+
+[sub_resource type="PlaneMesh" id="Floor"]
+size = Vector2(12, 12)
+
+[sub_resource type="StandardMaterial3D" id="FloorMaterial"]
+albedo_color = Color(0.08, 0.1, 0.14, 1)
+roughness = 0.8
+
+[node name="GarageMenu" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.025, 0.04, 1)
+
+[node name="Frame" type="MarginContainer" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="Stack" type="VBoxContainer" parent="Frame"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Frame/Stack"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "REVVED / GARAGE"
+
+[node name="Content" type="HBoxContainer" parent="Frame/Stack"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="Options" type="PanelContainer" parent="Frame/Stack/Content"]
+custom_minimum_size = Vector2(330, 0)
+layout_mode = 2
+
+[node name="Padding" type="MarginContainer" parent="Frame/Stack/Content/Options"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Rows" type="VBoxContainer" parent="Frame/Stack/Content/Options/Padding"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BodyLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "BODY KIT"
+
+[node name="Body" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+theme_override_font_sizes/font_size = 18
+
+[node name="WheelsLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "WHEELS"
+
+[node name="Wheels" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+theme_override_font_sizes/font_size = 18
+
+[node name="PaintLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "PAINT"
+
+[node name="Paint" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+theme_override_font_sizes/font_size = 18
+
+[node name="RotationLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+text = "INSPECT CAR"
+
+[node name="Rotation" type="HBoxContainer" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Left" type="Button" parent="Frame/Stack/Content/Options/Padding/Rows/Rotation"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+text = "Rotate left"
+
+[node name="Right" type="Button" parent="Frame/Stack/Content/Options/Padding/Rows/Rotation"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+text = "Rotate right"
+
+[node name="Feedback" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 64)
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
+text = "Changes apply to your car and save automatically."
+
+[node name="Spacer" type="Control" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Back" type="Button" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+theme_override_font_sizes/font_size = 18
+text = "Back to pause menu"
+
+[node name="Hint" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+text = "Esc: back   Tab: navigate"
+theme_override_font_sizes/font_size = 14
+
+[node name="Preview" type="SubViewportContainer" parent="Frame/Stack/Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+mouse_filter = 2
+
+[node name="Viewport" type="SubViewport" parent="Frame/Stack/Content/Preview"]
+own_world_3d = true
+size = Vector2i(760, 580)
+render_target_update_mode = 0
+
+[node name="Stage" type="Node3D" parent="Frame/Stack/Content/Preview/Viewport"]
+
+[node name="Environment" type="WorldEnvironment" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+environment = SubResource("Environment")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+rotation_degrees = Vector3(-40, -35, 0)
+light_energy = 1.4
+shadow_enabled = true
+
+[node name="FillLight" type="DirectionalLight3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+rotation_degrees = Vector3(-25, 145, 0)
+light_energy = 0.7
+
+[node name="Floor" type="MeshInstance3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+position = Vector3(0, -0.01, 0)
+mesh = SubResource("Floor")
+material_override = SubResource("FloorMaterial")
+
+[node name="Car" parent="Frame/Stack/Content/Preview/Viewport/Stage" instance=ExtResource("2_car")]
+
+[node name="Camera" type="Camera3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+position = Vector3(5, 2.7, -5)
+fov = 42.0
+current = true
+

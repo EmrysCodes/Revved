@@ -7,6 +7,7 @@ var _opened: bool = false
 @onready var _feedback: Label = $Overlay/Center/Card/Padding/Stack/Feedback
 @onready var _resume: Button = $Overlay/Center/Card/Padding/Stack/Resume
 @onready var _restart: Button = $Overlay/Center/Card/Padding/Stack/Restart
+@onready var _garage: Control = $Garage
 
 
 func _ready() -> void:
@@ -15,12 +16,16 @@ func _ready() -> void:
 	_units.item_selected.connect(_on_units_selected)
 	_resume.pressed.connect(close_menu)
 	_restart.pressed.connect(_restart_attempt)
+	$Overlay/Center/Card/Padding/Stack/Garage.pressed.connect(_open_garage)
+	_garage.back_requested.connect(_close_garage)
 	_overlay.hide()
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") and not event.is_echo():
-		if _opened:
+		if _garage.visible:
+			_close_garage()
+		elif _opened:
 			close_menu()
 		else:
 			open_menu()
@@ -43,6 +48,7 @@ func close_menu() -> void:
 		return
 	_opened = false
 	_overlay.hide()
+	_garage.hide()
 	get_viewport().gui_release_focus()
 	get_tree().paused = false
 
@@ -55,6 +61,17 @@ func _on_units_selected(index: int) -> void:
 func _restart_attempt() -> void:
 	get_parent().call("_reset_car")
 	close_menu()
+
+
+func _open_garage() -> void:
+	_overlay.hide()
+	_garage.open_garage()
+
+
+func _close_garage() -> void:
+	_garage.hide()
+	_overlay.show()
+	$Overlay/Center/Card/Padding/Stack/Garage.grab_focus()
 
 
 func _exit_tree() -> void:
