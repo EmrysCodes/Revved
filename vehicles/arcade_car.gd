@@ -1,5 +1,5 @@
 extends CharacterBody3D
-## Flat-road arcade handling. Physics uses meters and seconds; HUD uses GameSettings.
+## Arcade handling. Physics uses meters and seconds; HUD uses GameSettings.
 
 signal reset_to_spawn
 
@@ -19,6 +19,7 @@ signal reset_to_spawn
 @export var road_grip: float = 10.0
 @export var slide_grip: float = 0.65
 @export var handbrake_turn_boost: float = 1.65
+@export var align_to_slopes: bool = false
 
 var _speed: float = 0.0
 var _steering: float = 0.0
@@ -114,7 +115,14 @@ func _step_motion(delta: float, throttle: float, steering: float, footbrake: boo
 	_speed = Vector3(velocity.x, 0.0, velocity.z).dot(-global_basis.z)
 	_car_model.update_wheels(_steering, _speed if is_on_floor() else 0.0, delta)
 	var roll_ratio: float = clampf(planar.length() / top_speed, 0.0, 1.0)
-	_visuals.rotation.z = lerpf(_visuals.rotation.z, _steering * roll_ratio * deg_to_rad(4.0), 1.0 - exp(-14.0 * delta))
+	var pitch: float = 0.0
+	var bank: float = 0.0
+	if align_to_slopes and is_on_floor():
+		var normal: Vector3 = get_floor_normal()
+		pitch = atan2(-normal.dot(-global_basis.z), normal.y)
+		bank = atan2(-normal.dot(global_basis.x), normal.y)
+	_visuals.rotation.x = lerpf(_visuals.rotation.x, pitch, 1.0 - exp(-14.0 * delta))
+	_visuals.rotation.z = lerpf(_visuals.rotation.z, bank + _steering * roll_ratio * deg_to_rad(4.0), 1.0 - exp(-14.0 * delta))
 
 
 func _process(delta: float) -> void:
