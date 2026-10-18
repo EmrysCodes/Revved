@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/vehicles/jdm_coupe/jdm_coupe.glb" id="1_mesh"]
+
+[node name="JDMCoupeVisual" type="Node3D"]
+
+[node name="ImportedModel" parent="." instance=ExtResource("1_mesh")]
+position = Vector3(-0.001644, 0.598196, 0.00056)
+rotation_degrees = Vector3(0, -90, 0)
+scale = Vector3(2.102292, 2.102292, 2.102292)
