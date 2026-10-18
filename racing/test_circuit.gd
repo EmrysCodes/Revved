@@ -8,9 +8,10 @@ var next_gate: int = 0
 var elapsed: float = 0.0
 var best_lap: float = INF
 var completed_laps: int = 0
+var distance_driven: float = 0.0
 
 @onready var car: CharacterBody3D = $VehicleSpawn/PlayerCar
-@onready var readout: Label = $RaceHUD/Readout
+@onready var readout: Label = $RaceHUD/Screen/RacePanel/Padding/Readout
 
 
 func _ready() -> void:
@@ -22,6 +23,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	distance_driven += Vector2(car.velocity.x, car.velocity.z).length() * delta
 	if lap_active:
 		elapsed += delta
 	_update_readout()
@@ -52,7 +54,7 @@ func _restart_attempt() -> void:
 func _update_readout() -> void:
 	var best_text: String = "--:--.--" if is_inf(best_lap) else _time_text(best_lap)
 	var target: String = "START / FINISH" if next_gate == 0 else "CHECKPOINT %d" % next_gate
-	readout.text = "CIRCUIT TEST | Lap %d\nTime  %s\nBest  %s\nNext: %s\nFollow the numbered gates. R restarts the attempt." % [completed_laps + 1, _time_text(elapsed), best_text, target]
+	readout.text = "CIRCUIT TEST | LAP %d\nTime  %s\nBest  %s\nDriven  %s\nNext: %s" % [completed_laps + 1, _time_text(elapsed), best_text, GameSettings.format_distance(distance_driven), target]
 
 
 func _time_text(seconds: float) -> String:

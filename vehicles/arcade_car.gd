@@ -13,7 +13,7 @@ signal reset_to_spawn
 var _speed: float = 0.0
 var _spawn_transform: Transform3D
 
-@onready var _readout: Label = $HUD/Readout
+@onready var _readout: Label = $HUD/Screen/DrivePanel/Padding/Stack/Readout
 
 
 func _ready() -> void:
@@ -54,7 +54,7 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	# Use collision-resolved motion so barriers do not preserve stored speed.
 	_speed = Vector3(velocity.x, 0.0, velocity.z).dot(forward)
-	_readout.text = "REVVED | DRIVE TEST\n%03d km/h\nW / Up: accelerate    S / Down: brake / reverse\nA / D or arrows: steer    Space: brake    R: reset" % roundi(absf(_speed) * 3.6)
+	_readout.text = GameSettings.format_speed(_speed)
 	if global_position.y < -10.0:
 		_reset_car()
 
