@@ -111,12 +111,14 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 24
 
-[node name="Options" type="PanelContainer" parent="Frame/Stack/Content"]
-custom_minimum_size = Vector2(340, 0)
+[node name="Options" type="ScrollContainer" parent="Frame/Stack/Content"]
+custom_minimum_size = Vector2(370, 0)
 layout_mode = 2
+horizontal_scroll_mode = 0
 
 [node name="Padding" type="MarginContainer" parent="Frame/Stack/Content/Options"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
@@ -135,12 +137,23 @@ autowrap_mode = 3
 [node name="EngineLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "ENGINE / TRANSMISSION"
+text = "ENGINE LEVEL"
 
 [node name="Engine" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 36)
 theme_override_font_sizes/font_size = 18
+
+
+[node name="EngineBrand" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 34)
+theme_override_font_sizes/font_size = 16
+
+[node name="EngineDetails" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 14
 
 [node name="BrakesLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
@@ -152,6 +165,17 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 36)
 theme_override_font_sizes/font_size = 18
 
+
+[node name="BrakesBrand" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 34)
+theme_override_font_sizes/font_size = 16
+
+[node name="BrakesDetails" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 14
+
 [node name="TiresLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
@@ -161,6 +185,17 @@ text = "TIRE COMPOUND"
 layout_mode = 2
 custom_minimum_size = Vector2(0, 36)
 theme_override_font_sizes/font_size = 18
+
+
+[node name="TiresBrand" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 34)
+theme_override_font_sizes/font_size = 16
+
+[node name="TiresDetails" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 14
 
 [node name="VinylLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
@@ -185,9 +220,39 @@ theme_override_font_sizes/font_size = 18
 [node name="BodyLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "BODY KIT"
+text = "KIT PRESET / UPPER BODY"
 
 [node name="Body" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+theme_override_font_sizes/font_size = 18
+
+[node name="FrontBumperLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "FRONT BUMPER"
+
+[node name="FrontBumper" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+theme_override_font_sizes/font_size = 18
+
+[node name="RearBumperLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "REAR BUMPER"
+
+[node name="RearBumper" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+theme_override_font_sizes/font_size = 18
+
+[node name="SideSkirtsLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "SIDE SKIRTS"
+
+[node name="SideSkirts" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 36)
 theme_override_font_sizes/font_size = 18
@@ -222,17 +287,6 @@ text = "Changes apply to your car and save automatically."
 [node name="Spacer" type="Control" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
 size_flags_vertical = 3
-
-[node name="Back" type="Button" parent="Frame/Stack/Content/Options/Padding/Rows"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 36)
-theme_override_font_sizes/font_size = 18
-text = "Back to pause menu"
-
-[node name="Hint" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
-layout_mode = 2
-text = "Esc: back   Tab: navigate"
-theme_override_font_sizes/font_size = 14
 
 [node name="Preview" type="SubViewportContainer" parent="Frame/Stack/Content"]
 layout_mode = 2
@@ -342,4 +396,16 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_font_sizes/font_size = 16
 autowrap_mode = 3
+
+
+[node name="Back" type="Button" parent="Frame/Stack"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+theme_override_font_sizes/font_size = 18
+text = "Back to pause menu"
+
+[node name="Hint" type="Label" parent="Frame/Stack"]
+layout_mode = 2
+text = "Esc: back   Tab: navigate   Scroll the parts list for more options"
+theme_override_font_sizes/font_size = 14
 

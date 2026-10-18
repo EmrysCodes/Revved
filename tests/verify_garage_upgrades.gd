@@ -9,6 +9,7 @@ func _run() -> void:
 	var old_perf := Vector3i(settings.engine_level, settings.brakes_level, settings.tires_level)
 	var old_vinyl := Vector2i(settings.car_vinyl, settings.car_vinyl_color)
 	settings.settings_path = "res://tests/upgrades-verification.tmp"
+	settings.set_performance_brands(0, 0, 0, false)
 	settings.set_performance(0, 0, 0, false)
 	settings.set_vinyl(0, 0, false)
 	var level: Node3D = load("res://scenes/test_circuit.tscn").instantiate()
@@ -103,7 +104,7 @@ func _run() -> void:
 			tabs.current_tab = section
 			for frame in range(5):
 				await process_frame
-			assert(garage.get_node("Frame/Stack/Content").get_global_rect().encloses(rows.get_global_rect()), "All categories must fit at supported sizes")
+			assert(garage.get_node("Frame/Stack/Content").get_global_rect().encloses(garage.get_node("Frame/Stack/Content/Options").get_global_rect()), "All categories must fit at supported sizes")
 	settings.set_vinyl(2, 1)
 	var restored: Node = load("res://core/game_settings.gd").new()
 	restored.settings_path = settings.settings_path

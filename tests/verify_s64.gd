@@ -9,7 +9,7 @@ func _run() -> void:
 	var car: CharacterBody3D = level.get_node("VehicleSpawn/PlayerCar")
 	var visual: Node3D = car.get_node("Visuals/S64Compact")
 	var meshes: Array[Node] = visual.find_children("*", "MeshInstance3D", true, false)
-	assert(meshes.size() == 5, "Separate body and four wheels required")
+	assert(meshes.size() == 8, "Four body sections and four wheels required")
 	var bounds := AABB()
 	var triangles: int = 0
 	for index in range(meshes.size()):

@@ -4,15 +4,15 @@ extends Node3D
 @export var wheel_radius: float = 0.292335
 @export var maximum_steer_degrees: float = 30.0
 
-const BODY_SCENES: Array[PackedScene] = [preload("res://assets/vehicles/s64_compact/S64Compact_Body_1.glb"), preload("res://assets/vehicles/s64_compact/S64Compact_Body_2.glb"), preload("res://assets/vehicles/s64_compact/S64Compact_Body_3.glb")]
 const LEFT_WHEELS: Array[PackedScene] = [preload("res://assets/vehicles/s64_compact/Rims_L.glb"), preload("res://assets/vehicles/s64_compact/Rims_1_L.glb"), preload("res://assets/vehicles/s64_compact/Rims_2_L.glb"), preload("res://assets/vehicles/s64_compact/Rims_3_L.glb")]
 const RIGHT_WHEELS: Array[PackedScene] = [preload("res://assets/vehicles/s64_compact/Rims_R.glb"), preload("res://assets/vehicles/s64_compact/Rims_1_R.glb"), preload("res://assets/vehicles/s64_compact/Rims_2_R.glb"), preload("res://assets/vehicles/s64_compact/Rims_3_R.glb")]
-const BODY_OFFSETS: Array[Vector3] = [Vector3(0, 0.080392, 0.14696), Vector3(0, 0.0542, 0.07218), Vector3(0, 0.0241, -0.03331)]
 const PAINT_NAMES: Array[String] = ["Electric blue", "Racing red", "Midnight black", "Pearl white", "Sunburst yellow", "Violet"]
 const PAINT_COLORS: Array[Color] = [Color(0.015, 0.09, 0.55), Color(0.65, 0.012, 0.025), Color(0.012, 0.016, 0.022), Color(0.8, 0.82, 0.85), Color(0.9, 0.5, 0.01), Color(0.26, 0.025, 0.6)]
 const VINYL_COLORS: Array[Color] = [Color(0.95, 0.95, 0.95), Color(0.008, 0.008, 0.01), Color(1.0, 0.65, 0.015)]
 const VINYL_SHADER: Shader = preload("res://vehicles/car_vinyl.gdshader")
 
+const PART_NAMES := ["Core", "FrontBumper", "RearBumper", "SideSkirts"]
+var _parts_signature := Vector4i(-1, -1, -1, -1)
 var _body_index: int = -1
 var _wheel_index: int = -1
 
@@ -26,10 +26,21 @@ func _ready() -> void:
 
 
 func apply_saved_style() -> void:
-	if _body_index != GameSettings.car_body:
-		var body: Node3D = _replace_model(self, "Body", BODY_SCENES[GameSettings.car_body])
-		body.position = BODY_OFFSETS[GameSettings.car_body]
+	var parts := Vector4i(GameSettings.car_body, GameSettings.front_bumper, GameSettings.rear_bumper, GameSettings.side_skirts)
+	if parts != _parts_signature:
+		var old: Node3D = $Body
+		remove_child(old)
+		old.queue_free()
+		var body := Node3D.new()
+		body.name = "Body"
+		add_child(body)
+		for slot in range(4):
+			var part := MeshInstance3D.new()
+			part.name = PART_NAMES[slot]
+			part.mesh = load("res://assets/vehicles/s64_compact/modular/%s_%d.res" % [PART_NAMES[slot], parts[slot]])
+			body.add_child(part)
 		_body_index = GameSettings.car_body
+		_parts_signature = parts
 	if _wheel_index != GameSettings.car_wheels:
 		for index in range(_wheels.size()):
 			var scene: PackedScene = LEFT_WHEELS[GameSettings.car_wheels] if index % 2 == 0 else RIGHT_WHEELS[GameSettings.car_wheels]

@@ -1,4 +1,4 @@
-# S64 Compact — IceMaan
+# S64 Compact â€” IceMaan
 
 Source: https://icemaan.itch.io/free-low-poly-car-3-body-kits-4-rims
 Author: IceMaan
@@ -26,8 +26,8 @@ but is no longer the player car.
 The pause menu's Garage now exposes the three body variants, four wheel
 styles, and six paint presets. Choices apply live to the car and its isolated
 3D preview and are stored alongside unit preferences in user://settings.cfg.
-Body variants use adjusted offsets to keep their wheel arches aligned with
-the shared wheel pivots. The two spoiler assets are included but are not yet
+The modular meshes bake in adjusted offsets to keep their wheel arches aligned
+with the shared wheel pivots. The two spoiler assets are included but are not yet
 exposed as a garage option.
 
 The garage now separates Performance, Visuals, and Paint/decals. Performance
@@ -43,3 +43,41 @@ tool cabinet. Physics interpolation and an interpolated chase-camera target
 reduce tick-rate stepping in driving. The handbrake retains lateral momentum
 and blends grip back after release; the controller is still a kinematic arcade
 model rather than a full AWD/RWD drivetrain simulation.
+
+## Modular garage parts and brand variants
+
+Visuals offers three complete-kit presets plus independent front bumper,
+rear bumper and paired side-skirt choices from those kits. The preset also
+selects the upper body; reselecting a preset resets all three part slots.
+Paint, vinyl and wheel changes preserve mixed parts. Cosmetics do not change
+collision geometry or driving stats. The current car has 81 upper-body/part
+combinations before wheel and paint choices. Hood, fenders and lights remain
+part of the upper body; this is the first modular-body pass.
+
+`modular/*.res` contains real ArrayMesh parts, not overlapping whole shells.
+Rebuild them with Godot's `--headless --path . --script
+res://tools/build_s64_parts.gd`. The builder transforms the source triangles
+into common car coordinates, clips fascia below 0.62m at longitudinal cuts
++/-1.5m, then extracts outer sills below 0.40m. It interpolates normals and UVs,
+preserves material names for paint/vinyl, and leaves all unselected geometry
+in Core. Matched parts reconstruct the source surface. Mixed kits use the
+same cut planes; their seam contours can differ with the source styling.
+Original GLBs remain intact. Default assembled car is 7,896 triangles.
+
+Performance brands are fictional tuning profiles. Each Street/Sport/Race
+level offers three brands; all values below are gain per level:
+
+- Engine: Vector +15% acceleration/+6% speed, Forge +18%/+4.5%,
+  Zenith +12%/+7.5%.
+- Brakes: Vector +20% braking, Anchor +24% braking/-0.5% grip,
+  Modula +16% braking/+0.5% grip.
+- Tires: Vector +10% grip, Apex +12% grip/-1% acceleration,
+  Stride +8% grip/+1% acceleration.
+
+Cross-part effects multiply; the preview summary shows the combined result.
+All profiles are neutral at Stock, where brand selectors are disabled.
+Changing brands preserves the selected upgrade level. Values always derive
+from stock controller stats, so repeated selections never compound.
+Choices persist alongside existing preferences. Older saves inherit matching
+bumper/skirt choices from their saved kit and default to Vector brands.
+The parts list scrolls; Back remains outside the scrolling area.

@@ -31,7 +31,7 @@ func _run() -> void:
 		for frame in range(5):
 			await process_frame
 		assert(root.get_visible_rect().encloses(garage.get_node("Frame").get_global_rect()))
-		assert(garage.get_node("Frame/Stack/Content").get_global_rect().encloses(rows.get_global_rect()), "Garage controls must fit")
+		assert(garage.get_node("Frame/Stack/Content").get_global_rect().encloses(garage.get_node("Frame/Stack/Content/Options").get_global_rect()), "Garage controls must fit")
 		assert(garage.get_node("Frame/Stack/Content/Preview").size.x > 300.0, "Preview must retain usable width")
 	for body in range(3):
 		for wheels in range(4):
@@ -46,7 +46,7 @@ func _run() -> void:
 			assert(_paint(preview).albedo_color.is_equal_approx(preview.PAINT_COLORS[paint]), "Paint must reach preview")
 			assert(_paint(visual) != _paint(preview), "Paint overrides must not mutate shared imported materials")
 			var meshes: Array[Node] = visual.find_children("*", "MeshInstance3D", true, false)
-			assert(meshes.size() == 5, "Style swaps must not leave duplicate models")
+			assert(meshes.size() == 8, "Style swaps must not leave duplicate models")
 			var bounds := AABB()
 			for index in range(meshes.size()):
 				var relative: Transform3D = visual.global_transform.affine_inverse() * meshes[index].global_transform

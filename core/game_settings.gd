@@ -10,6 +10,8 @@ enum Units { US, METRIC }
 const SETTINGS_PATH: String = "user://settings.cfg"
 const METERS_PER_MILE: float = 1609.344
 const METERS_PER_FOOT: float = 0.3048
+const BRAND_NAMES := [["Vector / balanced", "Forge / launch", "Zenith / speed"], ["Vector / balanced", "Anchor / bite", "Modula / control"], ["Vector / balanced", "Apex / grip", "Stride / response"]]
+const BRAND_DETAILS := [["Balanced acceleration and speed.", "Stronger launch; less top-speed gain.", "More top speed; smaller acceleration gain."], ["Balanced stopping and control.", "Stronger braking; slightly less road grip.", "Gentler braking; slightly more road grip."], ["Balanced grip and response.", "More grip; slightly less acceleration.", "Less grip gain; slightly more acceleration."]]
 
 var unit_system: Units = Units.US
 var settings_path: String = SETTINGS_PATH
@@ -21,6 +23,12 @@ var car_vinyl_color: int = 0
 var engine_level: int = 0
 var brakes_level: int = 0
 var tires_level: int = 0
+var engine_brand: int = 0
+var brakes_brand: int = 0
+var tires_brand: int = 0
+var front_bumper: int = 0
+var rear_bumper: int = 0
+var side_skirts: int = 0
 
 
 func _ready() -> void:
@@ -37,6 +45,12 @@ func _ready() -> void:
 		engine_level = _load_choice(config, "engine", 4)
 		brakes_level = _load_choice(config, "brakes", 4)
 		tires_level = _load_choice(config, "tires", 4)
+		engine_brand = _load_choice(config, "engine_brand", 3)
+		brakes_brand = _load_choice(config, "brakes_brand", 3)
+		tires_brand = _load_choice(config, "tires_brand", 3)
+		front_bumper = _load_choice(config, "front_bumper", 3, car_body)
+		rear_bumper = _load_choice(config, "rear_bumper", 3, car_body)
+		side_skirts = _load_choice(config, "side_skirts", 3, car_body)
 
 
 func set_unit_system(value: int, persist: bool = true) -> Error:
@@ -52,6 +66,11 @@ func set_unit_system(value: int, persist: bool = true) -> Error:
 func set_car_style(body: int, wheels: int, paint: int, persist: bool = true) -> Error:
 	if body < 0 or body >= 3 or wheels < 0 or wheels >= 4 or paint < 0 or paint >= 6:
 		return ERR_INVALID_PARAMETER
+	# Changing the kit applies its matching parts; paint/wheel edits preserve custom parts.
+	if car_body != body:
+		front_bumper = body
+		rear_bumper = body
+		side_skirts = body
 	car_body = body
 	car_wheels = wheels
 	car_paint = paint
@@ -59,9 +78,36 @@ func set_car_style(body: int, wheels: int, paint: int, persist: bool = true) -> 
 	return _save_preferences() if persist else OK
 
 
-func _load_choice(config: ConfigFile, key: String, count: int) -> int:
-	var value: Variant = config.get_value("car", key, 0)
-	return value if value is int and value >= 0 and value < count else 0
+func _load_choice(config: ConfigFile, key: String, count: int, fallback: int = 0) -> int:
+	var value: Variant = config.get_value("car", key, fallback)
+	return value if value is int and value >= 0 and value < count else fallback
+
+
+func set_body_parts(front: int, rear: int, skirts: int, persist: bool = true) -> Error:
+	if front not in range(3) or rear not in range(3) or skirts not in range(3):
+		return ERR_INVALID_PARAMETER
+	front_bumper = front
+	rear_bumper = rear
+	side_skirts = skirts
+	car_style_changed.emit()
+	return _save_preferences() if persist else OK
+
+
+func set_kit_preset(kit: int, persist: bool = true) -> Error:
+	if kit not in range(3):
+		return ERR_INVALID_PARAMETER
+	car_body = kit
+	return set_body_parts(kit, kit, kit, persist)
+
+
+func set_performance_brands(engine: int, brakes: int, tires: int, persist: bool = true) -> Error:
+	if engine not in range(3) or brakes not in range(3) or tires not in range(3):
+		return ERR_INVALID_PARAMETER
+	engine_brand = engine
+	brakes_brand = brakes
+	tires_brand = tires
+	performance_changed.emit()
+	return _save_preferences() if persist else OK
 
 
 func set_performance(engine: int, brakes: int, tires: int, persist: bool = true) -> Error:
@@ -75,7 +121,12 @@ func set_performance(engine: int, brakes: int, tires: int, persist: bool = true)
 
 
 func performance_multipliers() -> Dictionary:
-	return {"top_speed": 1.0 + engine_level * 0.06, "acceleration": 1.0 + engine_level * 0.15, "braking": 1.0 + brakes_level * 0.2, "grip": 1.0 + tires_level * 0.1}
+	return {
+		"top_speed": 1.0 + engine_level * [0.06, 0.045, 0.075][engine_brand],
+		"acceleration": (1.0 + engine_level * [0.15, 0.18, 0.12][engine_brand]) * (1.0 + tires_level * [0.0, -0.01, 0.01][tires_brand]),
+		"braking": 1.0 + brakes_level * [0.2, 0.24, 0.16][brakes_brand],
+		"grip": (1.0 + tires_level * [0.1, 0.12, 0.08][tires_brand]) * (1.0 + brakes_level * [0.0, -0.005, 0.005][brakes_brand])
+	}
 
 
 func set_vinyl(style: int, color: int, persist: bool = true) -> Error:
@@ -99,6 +150,12 @@ func _save_preferences() -> Error:
 	config.set_value("car", "engine", engine_level)
 	config.set_value("car", "brakes", brakes_level)
 	config.set_value("car", "tires", tires_level)
+	config.set_value("car", "engine_brand", engine_brand)
+	config.set_value("car", "brakes_brand", brakes_brand)
+	config.set_value("car", "tires_brand", tires_brand)
+	config.set_value("car", "front_bumper", front_bumper)
+	config.set_value("car", "rear_bumper", rear_bumper)
+	config.set_value("car", "side_skirts", side_skirts)
 	return config.save(settings_path)
 
 

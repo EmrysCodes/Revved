@@ -4,8 +4,8 @@ signal back_requested
 
 const ROWS: String = "Frame/Stack/Content/Options/Padding/Rows"
 const SECTION_CONTROLS: Array = [
-	["EngineLabel", "Engine", "BrakesLabel", "Brakes", "TiresLabel", "Tires"],
-	["BodyLabel", "Body", "WheelsLabel", "Wheels"],
+	["EngineLabel", "Engine", "EngineBrand", "EngineDetails", "BrakesLabel", "Brakes", "BrakesBrand", "BrakesDetails", "TiresLabel", "Tires", "TiresBrand", "TiresDetails"],
+	["BodyLabel", "Body", "FrontBumperLabel", "FrontBumper", "RearBumperLabel", "RearBumper", "SideSkirtsLabel", "SideSkirts", "WheelsLabel", "Wheels"],
 	["PaintLabel", "Paint", "VinylLabel", "Vinyl", "VinylColorLabel", "VinylColor"]
 ]
 var _dragging: bool = false
@@ -21,7 +21,7 @@ var _orbit_distance: float = 7.6
 @onready var _brakes: OptionButton = get_node(ROWS + "/Brakes")
 @onready var _tires: OptionButton = get_node(ROWS + "/Tires")
 @onready var _feedback: Label = get_node(ROWS + "/Feedback")
-@onready var _back: Button = get_node(ROWS + "/Back")
+@onready var _back: Button = $Frame/Stack/Back
 @onready var _sections: TabBar = $Frame/Stack/Sections
 @onready var _preview: SubViewportContainer = $Frame/Stack/Content/Preview
 @onready var _viewport: SubViewport = $Frame/Stack/Content/Preview/Viewport
@@ -35,6 +35,16 @@ func _ready() -> void:
 		_sections.add_tab(title)
 	for title in ["Street kit", "Aero kit", "Widebody kit"]:
 		_body.add_item(title)
+	for slot in ["FrontBumper", "RearBumper", "SideSkirts"]:
+		var selector: OptionButton = get_node(ROWS + "/" + slot)
+		for title in ["Street", "Aero", "Widebody"]:
+			selector.add_item(title)
+		selector.item_selected.connect(_on_parts_choice)
+	for index in range(3):
+		var selector: OptionButton = get_node(ROWS + "/" + ["EngineBrand", "BrakesBrand", "TiresBrand"][index])
+		for title in GameSettings.BRAND_NAMES[index]:
+			selector.add_item(title)
+		selector.item_selected.connect(_on_brand_choice)
 	for title in ["Multi-spoke", "Sport spokes", "Deep dish", "Classic spokes"]:
 		_wheels.add_item(title)
 	for title in preload("res://vehicles/s64_compact_visual.gd").PAINT_NAMES:
@@ -47,7 +57,7 @@ func _ready() -> void:
 		for title in ["Stock", "Street", "Sport", "Race"]:
 			selector.add_item(title)
 		selector.item_selected.connect(_on_performance_choice)
-	_body.item_selected.connect(_on_choice)
+	_body.item_selected.connect(_on_kit_choice)
 	_wheels.item_selected.connect(_on_choice)
 	_paint.item_selected.connect(_on_choice)
 	_vinyl.item_selected.connect(_on_vinyl_choice)
@@ -72,6 +82,11 @@ func open_garage() -> void:
 	_engine.select(GameSettings.engine_level)
 	_brakes.select(GameSettings.brakes_level)
 	_tires.select(GameSettings.tires_level)
+	get_node(ROWS + "/EngineBrand").select(GameSettings.engine_brand)
+	get_node(ROWS + "/BrakesBrand").select(GameSettings.brakes_brand)
+	get_node(ROWS + "/TiresBrand").select(GameSettings.tires_brand)
+	_sync_parts()
+	_refresh_brands()
 	_feedback.text = "Changes apply immediately and save automatically."
 	_model.rotation = Vector3.ZERO
 	_orbit_pitch = 0.28
@@ -90,10 +105,27 @@ func _show_section(section: int) -> void:
 		for control_name in SECTION_CONTROLS[index]:
 			get_node(ROWS + "/" + control_name).visible = index == section
 	get_node(ROWS + "/Description").text = [
-		"Upgrade driving stats. All levels are unlocked for testing.",
-		"Change body kits and wheels. Performance stays the same.",
+		"Pick a level, then a brand. All parts are unlocked for testing.",
+		"Apply a kit, then mix bumpers and skirts. Scroll for wheels.",
 		"Choose paint and preset vinyl graphics."
 	][section]
+	$Frame/Stack/Content/Options.set_deferred("scroll_vertical", 0)
+
+
+func _sync_parts() -> void:
+	get_node(ROWS + "/FrontBumper").select(GameSettings.front_bumper)
+	get_node(ROWS + "/RearBumper").select(GameSettings.rear_bumper)
+	get_node(ROWS + "/SideSkirts").select(GameSettings.side_skirts)
+
+
+func _on_kit_choice(index: int) -> void:
+	GameSettings.set_car_style(index, _wheels.selected, _paint.selected, false)
+	_show_save_result(GameSettings.set_kit_preset(index))
+	_sync_parts()
+
+
+func _on_parts_choice(_index: int) -> void:
+	_show_save_result(GameSettings.set_body_parts(get_node(ROWS + "/FrontBumper").selected, get_node(ROWS + "/RearBumper").selected, get_node(ROWS + "/SideSkirts").selected))
 
 
 func _on_choice(_index: int) -> void:
@@ -106,7 +138,23 @@ func _on_vinyl_choice(_index: int) -> void:
 
 func _on_performance_choice(_index: int) -> void:
 	_show_save_result(GameSettings.set_performance(_engine.selected, _brakes.selected, _tires.selected))
+	_refresh_brands()
 	_refresh_summary()
+
+
+func _on_brand_choice(_index: int) -> void:
+	_show_save_result(GameSettings.set_performance_brands(get_node(ROWS + "/EngineBrand").selected, get_node(ROWS + "/BrakesBrand").selected, get_node(ROWS + "/TiresBrand").selected))
+	_refresh_brands()
+	_refresh_summary()
+
+
+func _refresh_brands() -> void:
+	var levels := [GameSettings.engine_level, GameSettings.brakes_level, GameSettings.tires_level]
+	for index in range(3):
+		var key: String = ["Engine", "Brakes", "Tires"][index]
+		var selector: OptionButton = get_node(ROWS + "/" + key + "Brand")
+		selector.disabled = levels[index] == 0
+		get_node(ROWS + "/" + key + "Details").text = "Stock part. Choose an upgrade level for brands." if levels[index] == 0 else GameSettings.BRAND_DETAILS[index][selector.selected]
 
 
 func _show_save_result(result: Error) -> void:
@@ -115,7 +163,8 @@ func _show_save_result(result: Error) -> void:
 
 func _refresh_summary() -> void:
 	var car: CharacterBody3D = get_parent().get_parent()
-	_stats.text = "TOP SPEED LIMIT  %s\nAcceleration +%d%%   Braking +%d%%   Grip +%d%%\nDrag to rotate / tilt. Scroll to zoom." % [GameSettings.format_speed(car.top_speed), GameSettings.engine_level * 15, GameSettings.brakes_level * 20, GameSettings.tires_level * 10]
+	var upgrades: Dictionary = GameSettings.performance_multipliers()
+	_stats.text = "TOP SPEED LIMIT  %s\nAcceleration %+.0f%%   Braking %+.0f%%   Grip %+.0f%%\nDrag to rotate / tilt. Scroll to zoom." % [GameSettings.format_speed(car.top_speed), (upgrades.acceleration - 1.0) * 100.0, (upgrades.braking - 1.0) * 100.0, (upgrades.grip - 1.0) * 100.0]
 
 
 func _on_preview_input(event: InputEvent) -> void:
