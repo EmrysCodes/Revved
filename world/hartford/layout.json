@@ -1,0 +1,30 @@
+{
+  "origin": [-72.6732, 41.7659],
+  "accuracy": "Hand-authored approximate geographic waypoints from Hartford reference maps. Metre-scale projection; not surveyed GIS geometry.",
+  "sources": ["https://law.media.uconn.edu/wp-content/uploads/sites/3082/2024/11/NECC-24-maps.pdf", "https://gis.hartford.gov/arcgis/rest/services/AssessorBaseMap/MapServer/35"],
+  "nodes": {
+    "MainSouth": [-72.6747,41.7545], "ParkMain": [-72.6744,41.7580], "ArchMain": [-72.6740,41.7621], "WellsMain": [-72.6738,41.7635], "PearlMain": [-72.6732,41.7658], "StateMain": [-72.6731,41.7665], "AsylumMain": [-72.6731,41.7673], "ChurchMain": [-72.6730,41.7697], "AlbanyMain": [-72.6730,41.7740], "MainNorth": [-72.6730,41.7770],
+    "TrumbullJewell": [-72.6768,41.7645], "TrumbullPearl": [-72.6772,41.7653], "TrumbullAsylum": [-72.6773,41.7673], "TrumbullChurch": [-72.6771,41.7698], "TrumbullNorth": [-72.6770,41.7735],
+    "UnionAsylum": [-72.6824,41.7683], "BroadFarmington": [-72.6880,41.7682], "FarmingtonWest": [-72.6950,41.7678], "PearlWest": [-72.6815,41.7666], "JewellWest": [-72.6825,41.7660], "TrinityElm": [-72.6825,41.7633], "CapitolTrinity": [-72.6828,41.7623], "BroadCapitol": [-72.6880,41.7623], "CapitolWest": [-72.6950,41.7623], "BroadPark": [-72.6880,41.7580], "ParkTrinity": [-72.6840,41.7580], "ParkWest": [-72.6950,41.7580],
+    "ColumbusNorth": [-72.6681,41.7700], "StateColumbus": [-72.6684,41.7663], "ArchColumbus": [-72.6685,41.7621], "ColumbusSouth": [-72.6695,41.7570], "FrontArch": [-72.6698,41.7621], "FrontState": [-72.6698,41.7664], "MarketState": [-72.6705,41.7665], "MarketNorth": [-72.6705,41.7730], "EastFounders": [-72.6595,41.7660], "EastNorth": [-72.6595,41.7720], "EastSouth": [-72.6595,41.7570]
+  },
+  "roads": [
+    {"name":"Main Street", "width":22, "nodes":["MainSouth","ParkMain","ArchMain","WellsMain","PearlMain","StateMain","AsylumMain","ChurchMain","AlbanyMain","MainNorth"]},
+    {"name":"Trumbull Street", "width":20, "nodes":["TrumbullJewell","TrumbullPearl","TrumbullAsylum","TrumbullChurch","TrumbullNorth"]},
+    {"name":"Asylum Street", "width":20, "nodes":["FarmingtonWest","BroadFarmington","UnionAsylum","TrumbullAsylum","AsylumMain"]},
+    {"name":"Pearl Street", "width":18, "nodes":["PearlWest","TrumbullPearl","PearlMain"]},
+    {"name":"Jewell Street", "width":18, "nodes":["JewellWest","TrumbullJewell","WellsMain"]},
+    {"name":"Trinity Street", "width":18, "nodes":["JewellWest","TrinityElm","CapitolTrinity","ParkTrinity"]},
+    {"name":"Capitol Avenue", "width":20, "nodes":["CapitolWest","BroadCapitol","CapitolTrinity","ArchMain"]},
+    {"name":"Park Street", "width":22, "nodes":["ParkWest","BroadPark","ParkTrinity","ParkMain","ColumbusSouth"]},
+    {"name":"Broad Street", "width":20, "nodes":["BroadFarmington","BroadCapitol","BroadPark"]},
+    {"name":"Church Street", "width":18, "nodes":["UnionAsylum","TrumbullChurch","ChurchMain","ColumbusNorth"]},
+    {"name":"Market Street", "width":18, "nodes":["MarketNorth","MarketState","StateMain"]},
+    {"name":"State Street", "width":20, "nodes":["StateMain","MarketState","FrontState","StateColumbus"]},
+    {"name":"Columbus Boulevard", "width":22, "nodes":["ColumbusNorth","StateColumbus","ArchColumbus","ColumbusSouth"]},
+    {"name":"Arch Street", "width":18, "nodes":["ArchMain","FrontArch","ArchColumbus"]},
+    {"name":"Front Street", "width":14, "nodes":["FrontState","FrontArch"]},
+    {"name":"East River Drive", "width":20, "nodes":["EastNorth","EastFounders","EastSouth"]},
+    {"name":"Founders local bridge", "width":22, "bridge":true, "nodes":["StateColumbus","EastFounders"]}
+  ]
+}

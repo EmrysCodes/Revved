@@ -113,12 +113,7 @@ func road(label: String, points: PackedVector3Array, width: float, parent: Node,
 		var right := tangent.cross(Vector3.UP).normalized()
 		for side in [-1.0, 1.0]:
 			var point: Vector3 = points[i] + right * side * width * 0.5
-			if not elevated:
-				point.y = ground(point.x, point.z)
-			else:
-				var center_ground := ground(points[i].x, points[i].z)
-				var blend := clampf((points[i].y - center_ground) / (highway_y(points[i].z) - center_ground), 0, 1)
-				point.y += lerpf(ground(point.x, point.z) - center_ground, highway_y(point.z) - highway_y(points[i].z), blend)
+			point.y = _road_edge_height(point, points[i], elevated)
 			pairs.append(point)
 	for i in range(points.size() - 1):
 		var a := pairs[i * 2]
@@ -133,6 +128,12 @@ func road(label: String, points: PackedVector3Array, width: float, parent: Node,
 	builder.generate_normals()
 	builder.index()
 	mesh_body(label, builder.commit(), parent)
+func _road_edge_height(point: Vector3, center: Vector3, elevated: bool) -> float:
+	if not elevated:
+		return ground(point.x, point.z)
+	var center_ground := ground(center.x, center.z)
+	var blend := clampf((center.y - center_ground) / (highway_y(center.z) - center_ground), 0, 1)
+	return point.y + lerpf(ground(point.x, point.z) - center_ground, highway_y(point.z) - highway_y(center.z), blend)
 func line_points(a: Vector3, b: Vector3, lift := 0.0) -> PackedVector3Array:
 	var points := PackedVector3Array()
 	var count := ceili(a.distance_to(b) / 6.0)

@@ -20,6 +20,7 @@ signal reset_to_spawn
 @export var slide_grip: float = 0.65
 @export var handbrake_turn_boost: float = 1.65
 @export var align_to_slopes: bool = false
+@export var max_step_height: float = 0.32
 
 var _speed: float = 0.0
 var _steering: float = 0.0
@@ -111,6 +112,8 @@ func _step_motion(delta: float, throttle: float, steering: float, footbrake: boo
 		velocity.y -= 22.0 * delta
 	velocity.x = planar.x
 	velocity.z = planar.z
+	if grounded:
+		_try_small_step(planar * delta)
 	move_and_slide()
 	_speed = Vector3(velocity.x, 0.0, velocity.z).dot(-global_basis.z)
 	_car_model.update_wheels(_steering, _speed if is_on_floor() else 0.0, delta)
@@ -123,6 +126,30 @@ func _step_motion(delta: float, throttle: float, steering: float, footbrake: boo
 		bank = atan2(-normal.dot(global_basis.x), normal.y)
 	_visuals.rotation.x = lerpf(_visuals.rotation.x, pitch, 1.0 - exp(-14.0 * delta))
 	_visuals.rotation.z = lerpf(_visuals.rotation.z, bank + _steering * roll_ratio * deg_to_rad(4.0), 1.0 - exp(-14.0 * delta))
+
+
+func _try_small_step(motion: Vector3) -> void:
+	if max_step_height <= 0.0 or motion.length_squared() < 0.000001:
+		return
+	var obstacle := KinematicCollision3D.new()
+	if not test_move(global_transform, motion, obstacle):
+		return
+	if obstacle.get_normal().dot(Vector3.UP) >= cos(floor_max_angle):
+		return
+	var lift := Vector3.UP * max_step_height
+	if test_move(global_transform, lift):
+		return
+	var raised: Transform3D = global_transform.translated(lift)
+	if test_move(raised, motion):
+		return
+	var landing := KinematicCollision3D.new()
+	if not test_move(raised.translated(motion), Vector3.DOWN * (max_step_height + 0.08), landing):
+		return
+	if landing.get_normal().dot(Vector3.UP) < cos(floor_max_angle):
+		return
+	var rise: float = max_step_height + landing.get_travel().y
+	if rise > 0.002 and rise <= max_step_height:
+		global_position.y += rise + 0.002
 
 
 func _process(delta: float) -> void:
