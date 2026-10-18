@@ -32,6 +32,7 @@ var _handbraking: bool = false
 @onready var _visuals: Node3D = $Visuals
 @onready var _camera_arm: SpringArm3D = $CameraArm
 @onready var _camera: Camera3D = $CameraArm/FollowCamera
+@onready var _car_model: Node3D = $Visuals/S64Compact
 
 
 func _ready() -> void:
@@ -103,6 +104,7 @@ func _step_motion(delta: float, throttle: float, steering: float, footbrake: boo
 	velocity.z = planar.z
 	move_and_slide()
 	_speed = Vector3(velocity.x, 0.0, velocity.z).dot(-global_basis.z)
+	_car_model.update_wheels(_steering, _speed if is_on_floor() else 0.0, delta)
 
 
 func _process(delta: float) -> void:
@@ -135,6 +137,7 @@ func _reset_car() -> void:
 	_grip = road_grip
 	_handbraking = false
 	_visuals.rotation = Vector3.ZERO
+	_car_model.reset_wheels()
 	_snap_camera()
 	reset_physics_interpolation()
 	reset_to_spawn.emit()

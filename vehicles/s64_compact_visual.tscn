@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://vehicles/s64_compact_visual.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/vehicles/s64_compact/S64Compact_Body_1.glb" id="2_body"]
+[ext_resource type="PackedScene" path="res://assets/vehicles/s64_compact/Rims_L.glb" id="3_left"]
+[ext_resource type="PackedScene" path="res://assets/vehicles/s64_compact/Rims_R.glb" id="4_right"]
+
+[node name="S64CompactVisual" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Body" parent="." instance=ExtResource("2_body")]
+position = Vector3(0, 0.080392, 0.14696)
+rotation_degrees = Vector3(0, 90, 0)
+scale = Vector3(1.218064, 1.218064, 1.218064)
+
+[node name="FrontLeft" type="Node3D" parent="."]
+position = Vector3(-0.779561, 0.292335, -1.275739)
+
+[node name="Spin" type="Node3D" parent="FrontLeft"]
+
+[node name="Model" parent="FrontLeft/Spin" instance=ExtResource("3_left")]
+rotation_degrees = Vector3(0, 90, 0)
+scale = Vector3(1.218064, 1.218064, 1.218064)
+
+[node name="FrontRight" type="Node3D" parent="."]
+position = Vector3(0.779561, 0.292335, -1.275739)
+
+[node name="Spin" type="Node3D" parent="FrontRight"]
+
+[node name="Model" parent="FrontRight/Spin" instance=ExtResource("4_right")]
+rotation_degrees = Vector3(0, 90, 0)
+scale = Vector3(1.218064, 1.218064, 1.218064)
+
+[node name="RearLeft" type="Node3D" parent="."]
+position = Vector3(-0.779561, 0.292335, 1.267579)
+
+[node name="Spin" type="Node3D" parent="RearLeft"]
+
+[node name="Model" parent="RearLeft/Spin" instance=ExtResource("3_left")]
+rotation_degrees = Vector3(0, 90, 0)
+scale = Vector3(1.218064, 1.218064, 1.218064)
+
+[node name="RearRight" type="Node3D" parent="."]
+position = Vector3(0.779561, 0.292335, 1.267579)
+
+[node name="Spin" type="Node3D" parent="RearRight"]
+
+[node name="Model" parent="RearRight/Spin" instance=ExtResource("4_right")]
+rotation_degrees = Vector3(0, 90, 0)
+scale = Vector3(1.218064, 1.218064, 1.218064)
