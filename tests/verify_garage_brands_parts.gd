@@ -43,7 +43,7 @@ func _run() -> void:
 	assert(not rows.get_node("EngineBrand").disabled)
 	rows.get_node("EngineBrand").select(1)
 	rows.get_node("EngineBrand").item_selected.emit(1)
-	assert(settings.engine_brand == 1 and garage.get_node("Frame/Stack/Content/Preview/StatsPanel/Padding/Stats").text.contains("+36%"), "UI and summary reflect brand")
+	assert(settings.engine_brand == 1 and garage.get_node("Frame/Stack/Content/Preview/StatsPanel/Padding/Stats").text.contains("+58%"), "UI and summary reflect brand")
 	garage.get_node("Frame/Stack/Sections").current_tab = 1
 	var count := 0
 	for kit in range(3):

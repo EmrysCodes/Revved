@@ -40,6 +40,9 @@ func _run() -> void:
 	car.set_physics_process(false)
 	for frame in range(10):
 		await physics_frame
+	var infill: Array=city.get_meta("infill_routes")
+	for index in [0,8,20,40,60,80,100]:
+		await drive(car,infill[index],"Neighborhood_%d"%index)
 	var routes: Dictionary=city.get_meta("named_routes")
 	for key in ["Downtown_to_I84_E","I84_E_to_I91_S","I91_S_to_I84_W","I84_W_to_I91_N","I91_N_to_I84_E","I84_E_to_R2_S","R2_N_to_I84_W","I91_S_to_R3_E","R3_W_to_I91_N","R3_W_to_I91_S","R3_E_to_R2_N","R2_S_to_R3_W","I84_W_to_Downtown"]:
 		await drive(car,routes[key],key)

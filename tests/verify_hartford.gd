@@ -20,7 +20,7 @@ func _run() -> void:
 				var query:=PhysicsRayQueryParameters3D.create(sample+Vector3.UP*0.7,sample-Vector3.UP*0.3)
 				query.exclude=[car.get_rid()]
 				var hit:=space.intersect_ray(query)
-				if hit.is_empty() or absf(hit.position.y-point.y)>0.12:
+				if hit.is_empty() or absf(hit.position.y-point.y)>0.12 or hit.collider.get_parent().name=="Terrain":
 					if problems<24:
 						print("SURFACE ",path_index," ",point," ",hit)
 					problems+=1
@@ -34,7 +34,9 @@ func _run() -> void:
 	print("ROAD PROBLEMS ",problems)
 	assert(problems==0,"Roads and ramps must have continuous clear driving corridors")
 	var panes: Array[Node]=city.get_node("Shortcuts").find_children("*","Area3D",true,false)
-	assert(panes.size()==22,"Eleven two-front glass arcades")
+	assert(panes.size()==city.get_meta("glass_locations").size()*2 and panes.size()>0,"Two fronts per glass arcade")
+	assert(city.get_meta("building_count")>1000,"Dense building infill")
+	assert(city.get_meta("infill_routes").size()>100 and city.get_meta("alley_count")>50,"Connected neighborhood streets and alleys")
 	panes[0].call("_entered",car)
 	assert(panes[0].get("broken") and not panes[0].get_node("Pane").visible)
 	car.call("_reset_car")

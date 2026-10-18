@@ -4,11 +4,15 @@ extends CharacterBody3D
 signal reset_to_spawn
 
 @export_group("Power and braking")
-@export var top_speed: float = 32.0
+@export var top_speed: float = 69.3
 @export var reverse_speed: float = 9.0
-@export var acceleration: float = 12.0
-@export var braking: float = 26.0
-@export var rolling_drag: float = 2.0
+@export var acceleration: float = 7.0
+@export var braking: float = 10.5
+@export var rolling_drag: float = 1.0
+## Arcade approximation of gearing/drag: acceleration falls with road speed.
+@export var power_falloff_speed: float = 27.0
+@export var steering_speed_reference: float = 32.0
+@export var cornering_acceleration: float = 13.0
 @export var handbrake_drag: float = 2.2
 
 @export_group("Steering and grip")
@@ -84,7 +88,7 @@ func _step_motion(delta: float, throttle: float, steering: float, footbrake: boo
 			planar = planar.move_toward(Vector3.ZERO, braking * delta)
 		elif not is_zero_approx(throttle):
 			var target: float = top_speed if throttle > 0.0 else -reverse_speed
-			var rate: float = braking if _speed * throttle < 0.0 else acceleration
+			var rate: float = braking if _speed * throttle < 0.0 else _drive_acceleration(_speed)
 			var longitudinal: float = move_toward(_speed, target, rate * delta)
 			planar += forward * (longitudinal - _speed)
 		else:
@@ -92,8 +96,10 @@ func _step_motion(delta: float, throttle: float, steering: float, footbrake: boo
 		if _handbraking:
 			planar = planar.move_toward(Vector3.ZERO, handbrake_drag * delta)
 
-		var speed_ratio: float = clampf(planar.length() / top_speed, 0.0, 1.0)
+		var speed_ratio: float = clampf(planar.length() / steering_speed_reference, 0.0, 1.0)
 		var turn_rate: float = lerpf(low_speed_turn_rate, high_speed_turn_rate, speed_ratio)
+		# Keep high-speed steering stable when engine upgrades raise the speed ceiling.
+		turn_rate = minf(turn_rate, cornering_acceleration * road_grip / 10.0 / maxf(planar.length(), 1.0))
 		var travel_sign: float = signf(planar.dot(forward))
 		var low_speed_weight: float = clampf(absf(planar.dot(forward)) / 4.0, 0.0, 1.0)
 		var boost: float = lerpf(1.0, handbrake_turn_boost, _drift_blend)
@@ -126,6 +132,12 @@ func _step_motion(delta: float, throttle: float, steering: float, footbrake: boo
 		bank = atan2(-normal.dot(global_basis.x), normal.y)
 	_visuals.rotation.x = lerpf(_visuals.rotation.x, pitch, 1.0 - exp(-14.0 * delta))
 	_visuals.rotation.z = lerpf(_visuals.rotation.z, bank + _steering * roll_ratio * deg_to_rad(4.0), 1.0 - exp(-14.0 * delta))
+
+
+func _drive_acceleration(speed: float) -> float:
+	if speed<0.0:
+		return acceleration
+	return acceleration / (1.0 + pow(speed / maxf(power_falloff_speed, 1.0), 2.0))
 
 
 func _try_small_step(motion: Vector3) -> void:

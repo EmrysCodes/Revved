@@ -26,12 +26,12 @@ func _run() -> void:
 	for frame in range(60):
 		car.call("_step_motion", STEP, 1.0, 0.0, false, false)
 		await physics_frame
-	assert(car.velocity.z < -10.0, "Throttle must accelerate forward")
+	assert(car.velocity.z < -car.acceleration * 0.8, "Throttle must accelerate forward")
 	for frame in range(300):
 		car.call("_step_motion", STEP, 1.0, 0.0, false, false)
 		await physics_frame
 	assert(Vector2(car.velocity.x, car.velocity.z).length() <= car.top_speed + 0.01, "Speed cap")
-	for frame in range(90):
+	for frame in range(ceili(car.top_speed / car.braking * 60.0) + 10):
 		car.call("_step_motion", STEP, 0.0, 0.0, true, false)
 		await physics_frame
 	assert(Vector2(car.velocity.x, car.velocity.z).length() < 0.1, "Footbrake must stop without reversing")
@@ -73,7 +73,7 @@ func _run() -> void:
 	for frame in range(60):
 		await physics_frame
 	_key(KEY_W, false)
-	assert(car.velocity.z < -8.0, "W key must accelerate")
+	assert(car.velocity.z < -car.acceleration * 0.7, "W key must accelerate")
 	_key(KEY_SHIFT, true)
 	for frame in range(60):
 		await physics_frame

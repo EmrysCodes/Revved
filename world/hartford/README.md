@@ -82,3 +82,16 @@ The existing handling, smoothing and garage tests provide regression coverage.
 
 These are collision/driveability checks, not a survey-accuracy or full-city
 performance certification. Preview captures were taken from the running game.
+
+
+## Dense neighborhood infill
+
+Current generated totals: 1,156 ordinary/landmark building masses, 256 local road links (including 131 service alleys), 10 highway carriageways, 32 ramps and four drive-through glass arcades.
+
+The smaller streets and service alleys are fictional gameplay additions, not GIS-derived Hartford streets. Four infill areas connect to the arterial network. Alleys are 7m wide, unmarked, flush with the road surface, and open at both ends; neighborhood roads are 12–14m wide. Small commercial/apartment parcels include shop glazing, canopies, rooftop equipment and paved service margins. The park, river, landmark envelopes, highway clearances and glass-arcade approaches remain reserved.
+
+Free asset candidates checked against their official pages:
+- [Kenney City Kit (Commercial)](https://kenney.nl/assets/city-kit-commercial): 50 assets, CC0.
+- [Kenney City Kit (Roads)](https://kenney.nl/assets/city-kit-roads): 90 assets, CC0.
+
+These packs have not been imported. The current build uses authored meshes, including continuous terrain-following roads rather than flat road tiles. Download access from this environment is restricted; the links above record suitable candidates for a later art pass.

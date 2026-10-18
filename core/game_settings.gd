@@ -134,11 +134,14 @@ func set_performance(engine: int, brakes: int, tires: int, persist: bool = true)
 
 
 func performance_multipliers() -> Dictionary:
+	# Increasing tiers stay distinct; brands shift the emphasis within each tier.
+	var engine_speed: float=[1.0,1.08,1.18,1.30][engine_level]
+	var engine_pull: float=[1.0,1.20,1.48,1.82][engine_level]
 	return {
-		"top_speed": 1.0 + engine_level * [0.06, 0.045, 0.075][engine_brand],
-		"acceleration": (1.0 + engine_level * [0.15, 0.18, 0.12][engine_brand]) * (1.0 + tires_level * [0.0, -0.01, 0.01][tires_brand]),
-		"braking": 1.0 + brakes_level * [0.2, 0.24, 0.16][brakes_brand],
-		"grip": (1.0 + tires_level * [0.1, 0.12, 0.08][tires_brand]) * (1.0 + brakes_level * [0.0, -0.005, 0.005][brakes_brand])
+		"top_speed": engine_speed + engine_level * [0.0,-0.015,0.015][engine_brand],
+		"acceleration": (engine_pull + engine_level * [0.0,0.05,-0.05][engine_brand]) * (1.0 + tires_level * [0.0,-0.005,0.005][tires_brand]),
+		"braking": [1.0,1.10,1.20,1.30][brakes_level] + brakes_level * [0.0,0.015,-0.015][brakes_brand],
+		"grip": (1.0 + tires_level * [0.08,0.09,0.07][tires_brand]) * (1.0 + brakes_level * [0.0,-0.003,0.003][brakes_brand])
 	}
 
 

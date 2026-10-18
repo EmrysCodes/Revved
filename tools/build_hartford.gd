@@ -10,6 +10,10 @@ var ring_profile := false
 var paint_requests: Array = []
 var sidewalk_requests: Array = []
 var path_widths: Array[float] = []
+var infill_routes: Array = []
+var alley_count := 0
+var reserved_blocks: Array[Vector3] = []
+var plan_cache: Dictionary = {}
 func ground(x: float, z: float) -> float:
 	var land := 4.0 + 16.0 * (1.0 - smoothstep(-1700, 500, x)) + 2.0 * sin(z / 750.0)
 	var river_x := 730.0 + 35.0 * sin(z / 800.0)
@@ -50,6 +54,7 @@ func _build() -> void:
 		material(entry[0], entry[1])
 	_build_land()
 	_build_streets()
+	_build_infill_streets()
 	paint_streets()
 	for request in sidewalk_requests:
 		beveled_walk(request[0],request[1],request[2])
@@ -65,6 +70,8 @@ func _build() -> void:
 	city.set("highway_roads", highway_map)
 	city.set("ramp_roads", ramp_map)
 	city.set_meta("building_count", building_count)
+	city.set_meta("infill_routes", infill_routes)
+	city.set_meta("alley_count", alley_count)
 	city.set_meta("named_routes", named_routes)
 	city.set_meta("glass_locations", glass_locations)
 	var water_map:=PackedVector3Array()
@@ -85,7 +92,7 @@ func _build_land() -> void:
 	builder.set_material(mats.Grass)
 	for x in range(-2250,2250,25):
 		for z in range(-1900,1900,25):
-			quad(builder,pos(x,z+25,-0.015),pos(x+25,z+25,-0.015),pos(x,z,-0.015),pos(x+25,z,-0.015),true)
+			quad(builder,pos(x,z+25,-0.18),pos(x+25,z+25,-0.18),pos(x,z,-0.18),pos(x+25,z,-0.18),true)
 	builder.generate_normals()
 	builder.index()
 	mesh_body("ContinuousLandAndRiverBanks",builder.commit(),groups.Terrain)
@@ -171,6 +178,45 @@ func _build_streets() -> void:
 	local_link("ParkNorthApproach",node_point("TrumbullJewell"),pos(-305,190),12)
 	local_link("ParkWestApproach",node_point("TrinityElm"),pos(-825,190),12)
 	local_link("ParkCrossing",pos(-825,190),pos(-305,190),8)
+# Fictional neighborhood infill, connected to the authored arterial network.
+func _build_infill_streets() -> void:
+	# Short blocks west of downtown, south of the park, and east of the river.
+	for district in [Rect2(-1740,-650,660,1900),Rect2(-1080,520,1440,730),Rect2(-720,-620,960,500),Rect2(1010,-380,300,1320)]:
+		var xs: Array[float]=[]
+		var zs: Array[float]=[]
+		var x: float= district.position.x
+		while x<=district.end.x:
+			xs.append(x)
+			x+=150.0
+		var z: float= district.position.y
+		while z<=district.end.y:
+			zs.append(z)
+			z+=140.0
+		for xx in xs:
+			infill_link("NeighborhoodStreet",pos(xx,zs[0]),pos(xx,zs[-1]),12)
+		for zz in zs:
+			infill_link("NeighborhoodCrossStreet",pos(xs[0],zz),pos(xs[-1],zz),12)
+		# Mid-block lanes have two exits; keep a full 7m driving corridor.
+		for i in range(xs.size()-1):
+			for j in range(zs.size()-1):
+				infill_link("ServiceAlley",pos((xs[i]+xs[i+1])*0.5,zs[j]),pos((xs[i]+xs[i+1])*0.5,zs[j+1]),7)
+	# Explicit links prevent the smaller neighborhood grids becoming islands.
+	infill_link("WestInfillLink",pos(-1080,50),node_point("JewellWest"),14)
+	infill_link("SouthInfillLink",pos(-780,520),node_point("ParkTrinity"),14)
+	infill_link("SouthMainLink",pos(360,1080),node_point("ColumbusSouth"),14)
+	infill_link("EastInfillLink",pos(1010,40),node_point("EastFounders"),14)
+func infill_link(label: String,a: Vector3,b: Vector3,width: float) -> void:
+	# Reject routes through existing landmark envelopes, rather than burying buildings.
+	for landmark in [Vector3(-900,0,220),Vector3(5,0,300),Vector3(-450,0,-300),Vector3(-820,0,-220),Vector3(350,0,350),Vector3(470,0,200),Vector3(60,0,0)]:
+		if Vector2(landmark.x,landmark.z).distance_to(Geometry2D.get_closest_point_to_segment(Vector2(landmark.x,landmark.z),Vector2(a.x,a.z),Vector2(b.x,b.z)))<75:
+			return
+	local_link(label,a,b,width)
+	infill_routes.append(road_map[-1])
+	if width<8:
+		# Alleys are unmarked and flush; intersections stay open to vehicles.
+		alley_count+=1
+		paint_requests.pop_back()
+		sidewalk_requests.pop_back()
 func offset_path(path: PackedVector3Array,offset: float) -> PackedVector3Array:
 	var out:=PackedVector3Array()
 	for i in range(path.size()):
@@ -320,18 +366,35 @@ func rail(a: Vector3,b: Vector3,parent: Node) -> void:
 func flush_rails() -> void:
 	for key in rail_batches:
 		mesh_body("Guardrails_"+key,rail_batches[key][0].commit(),rail_batches[key][1])
+func plan_segments(path: PackedVector3Array) -> PackedVector3Array:
+	var key:=hash(path)
+	if plan_cache.has(key):
+		return plan_cache[key]
+	var result:=PackedVector3Array([path[0]])
+	for i in range(1,path.size()-1):
+		var a:=Vector2(result[-1].x,result[-1].z)
+		var b:=Vector2(path[i+1].x,path[i+1].z)
+		var p:=Vector2(path[i].x,path[i].z)
+		if p.distance_to(Geometry2D.get_closest_point_to_segment(p,a,b))>0.001:
+			result.append(path[i])
+	result.append(path[-1])
+	plan_cache[key]=result
+	return result
 func road_distance(point: Vector3,paths: Array) -> float:
 	var best:=INF
 	var p:=Vector2(point.x,point.z)
-	for path: PackedVector3Array in paths:
+	for original: PackedVector3Array in paths:
+		var path:=plan_segments(original)
 		for i in range(path.size()-1):
 			var a:=Vector2(path[i].x,path[i].z)
 			var b:=Vector2(path[i+1].x,path[i+1].z)
+			if p.x<minf(a.x,b.x)-best or p.x>maxf(a.x,b.x)+best or p.y<minf(a.y,b.y)-best or p.y>maxf(a.y,b.y)+best:
+				continue
 			best=minf(best,p.distance_to(Geometry2D.get_closest_point_to_segment(p,a,b)))
 	return best
 func _build_blocks() -> void:
 	# Park grounds are continuous terrain; only paths and monuments constrain driving.
-	terrain_patch("BushnellParkLawn",-825,80,-305,300,"Grass",0.005,groups.Details,false)
+	terrain_patch("BushnellParkLawn",-825,80,-305,300,"Grass",-0.05,groups.Details,false)
 	var landmarks: Array[Vector3]=[Vector3(-900,0,220),Vector3(5,0,300),Vector3(-450,0,-300),Vector3(-820,0,-220),Vector3(350,0,350),Vector3(470,0,200),Vector3(60,0,0)]
 	var candidates: Array[Vector3]=[]
 	for x in range(-1680,1450,85):
@@ -358,15 +421,54 @@ func _build_blocks() -> void:
 		var p: Vector3=candidates[index]
 		if index%37==0 and road_distance(p,road_map)>60:
 			glass_lobby(p.x,p.z)
+			reserved_blocks.append(Vector3(p.x,55,p.z))
 			continue
 		var central: bool=p.x> -500 and p.x<450 and absf(p.z)<600
 		var height: float=rng.randf_range(28,95) if central else rng.randf_range(8,25)
 		var sx:=rng.randf_range(26,46)
 		var sz:=rng.randf_range(28,48)
 		building(p.x,p.z,sx,sz,height,rng.randi_range(0,3))
+		reserved_blocks.append(Vector3(p.x,Vector2(sx,sz).length()*0.5+3,p.z))
 		if central or index%4==0:
 			terrain_patch("DriveableForecourt",p.x-33,p.z-34,p.x+33,p.z+34,"Walk",0.008,groups.Details)
+	_dense_frontage(landmarks)
 	_build_landmarks()
+func _dense_frontage(landmarks: Array[Vector3]) -> void:
+	# Small parcels create shop rows, apartments and warehouses between larger masses.
+	for x in range(-1780,1430,38):
+		for z in range(-1280,1400,38):
+			var p:=pos(x+rng.randf_range(-2,2),z+rng.randf_range(-2,2))
+			if p.x>490 and p.x<990 or p.x> -870 and p.x< -280 and p.z>35 and p.z<340:
+				continue
+			if p.x>500 and p.z< -470 or p.x> -350 and p.x<1300 and p.z< -600:
+				continue
+			var sx:=rng.randf_range(19,28)
+			var sz:=rng.randf_range(20,29)
+			var radius:=Vector2(sx,sz).length()*0.5+1
+			var blocked:=false
+			for landmark in landmarks:
+				if Vector2(p.x-landmark.x,p.z-landmark.z).length()<80+radius:
+					blocked=true
+			for other in reserved_blocks:
+				if Vector2(p.x-other.x,p.z-other.z).length()<radius+other.y:
+					blocked=true
+			if blocked or road_distance(p,highway_map)<radius+16 or road_distance(p,ramp_map)<radius+10:
+				continue
+			# Width-aware clearance preserves both street and alley shoulders.
+			for i in range(road_map.size()):
+				if road_distance(p,[road_map[i]])<radius+path_widths[i]*0.5+4:
+					blocked=true
+					break
+			if blocked:
+				continue
+			var central:=p.x> -720 and p.x<450 and absf(p.z)<650
+			var height:=rng.randf_range(16,58) if central else rng.randf_range(7,19)
+			building(p.x,p.z,sx,sz,height,rng.randi_range(0,3))
+			# Paved service yards, ground-floor shop glazing and rooftop equipment.
+			terrain_patch("PavedParcel",p.x-sx*0.5-2,p.z-sz*0.5-2,p.x+sx*0.5+2,p.z+sz*0.5+2,"Walk",0.006,groups.Details,false)
+			box("ShopFront",p+Vector3(0,2,sz*0.5+0.04),Vector3(sx*0.72,2.8,0.08),"Window",groups.Details,false)
+			box("ShopCanopy",p+Vector3(0,3.7,sz*0.5+0.8),Vector3(sx*0.8,0.25,1.8),"Building2",groups.Details,false)
+			box("RoofEquipment",p+Vector3(0,height+1.2,0),Vector3(3,2,4),"Concrete",groups.Details,false)
 func _build_landmarks() -> void:
 	# Recognizable blockout silhouettes and approximate locations; no exact facade claim.
 	building(-900,220,84,48,34,0)
@@ -445,7 +547,7 @@ func crosses_other_street(point: Vector3,source: int) -> bool:
 	for index in range(road_map.size()):
 		if index==source:
 			continue
-		var path: PackedVector3Array=road_map[index]
+		var path:=plan_segments(road_map[index])
 		var width: float=path_widths[index]*0.5+0.8
 		for i in range(path.size()-1):
 			var a:=Vector2(path[i].x,path[i].z)
@@ -520,6 +622,8 @@ func store_geometry() -> void:
 func paint_streets() -> void:
 	for request in paint_requests:
 		var points: PackedVector3Array=request[0]
+		if request[1]<10:
+			continue
 		for i in range(points.size()-1):
 			if crosses_other_street((points[i]+points[i+1])*0.5,request[2]):
 				continue
