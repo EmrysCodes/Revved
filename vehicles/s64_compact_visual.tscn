@@ -8,6 +8,8 @@
 [node name="S64CompactVisual" type="Node3D"]
 script = ExtResource("1_script")
 
+[node name="Spoiler" type="Node3D" parent="."]
+
 [node name="Body" parent="." instance=ExtResource("2_body")]
 position = Vector3(0, 0.080392, 0.14696)
 rotation_degrees = Vector3(0, 90, 0)

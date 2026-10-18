@@ -267,6 +267,26 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 36)
 theme_override_font_sizes/font_size = 18
 
+[node name="SpoilerLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "SPOILER"
+
+[node name="Spoiler" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+theme_override_font_sizes/font_size = 18
+
+[node name="SpoilerFinishLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "SPOILER FINISH"
+
+[node name="SpoilerFinish" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+theme_override_font_sizes/font_size = 18
+
 [node name="PaintLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14

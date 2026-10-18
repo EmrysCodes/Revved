@@ -5,7 +5,7 @@ signal back_requested
 const ROWS: String = "Frame/Stack/Content/Options/Padding/Rows"
 const SECTION_CONTROLS: Array = [
 	["EngineLabel", "Engine", "EngineBrand", "EngineDetails", "BrakesLabel", "Brakes", "BrakesBrand", "BrakesDetails", "TiresLabel", "Tires", "TiresBrand", "TiresDetails"],
-	["BodyLabel", "Body", "FrontBumperLabel", "FrontBumper", "RearBumperLabel", "RearBumper", "SideSkirtsLabel", "SideSkirts", "WheelsLabel", "Wheels"],
+	["BodyLabel", "Body", "FrontBumperLabel", "FrontBumper", "RearBumperLabel", "RearBumper", "SideSkirtsLabel", "SideSkirts", "WheelsLabel", "Wheels", "SpoilerLabel", "Spoiler", "SpoilerFinishLabel", "SpoilerFinish"],
 	["PaintLabel", "Paint", "VinylLabel", "Vinyl", "VinylColorLabel", "VinylColor"]
 ]
 var _dragging: bool = false
@@ -47,6 +47,12 @@ func _ready() -> void:
 		selector.item_selected.connect(_on_brand_choice)
 	for title in ["Multi-spoke", "Sport spokes", "Deep dish", "Classic spokes"]:
 		_wheels.add_item(title)
+	for title in ["None", "Street wing", "Competition wing"]:
+		get_node(ROWS + "/Spoiler").add_item(title)
+	for title in ["Match body paint", "Satin black"]:
+		get_node(ROWS + "/SpoilerFinish").add_item(title)
+	get_node(ROWS + "/Spoiler").item_selected.connect(_on_spoiler_choice)
+	get_node(ROWS + "/SpoilerFinish").item_selected.connect(_on_spoiler_choice)
 	for title in preload("res://vehicles/s64_compact_visual.gd").PAINT_NAMES:
 		_paint.add_item(title)
 	for title in ["None", "Twin hood stripes", "Side flash"]:
@@ -86,6 +92,9 @@ func open_garage() -> void:
 	get_node(ROWS + "/BrakesBrand").select(GameSettings.brakes_brand)
 	get_node(ROWS + "/TiresBrand").select(GameSettings.tires_brand)
 	_sync_parts()
+	get_node(ROWS + "/Spoiler").select(GameSettings.car_spoiler)
+	get_node(ROWS + "/SpoilerFinish").select(GameSettings.spoiler_finish)
+	get_node(ROWS + "/SpoilerFinish").disabled = GameSettings.car_spoiler == 0
 	_refresh_brands()
 	_feedback.text = "Changes apply immediately and save automatically."
 	_model.rotation = Vector3.ZERO
@@ -106,7 +115,7 @@ func _show_section(section: int) -> void:
 			get_node(ROWS + "/" + control_name).visible = index == section
 	get_node(ROWS + "/Description").text = [
 		"Pick a level, then a brand. All parts are unlocked for testing.",
-		"Apply a kit, then mix bumpers and skirts. Scroll for wheels.",
+		"Mix body parts, wheels and spoilers. Scroll for more options.",
 		"Choose paint and preset vinyl graphics."
 	][section]
 	$Frame/Stack/Content/Options.set_deferred("scroll_vertical", 0)
@@ -126,6 +135,11 @@ func _on_kit_choice(index: int) -> void:
 
 func _on_parts_choice(_index: int) -> void:
 	_show_save_result(GameSettings.set_body_parts(get_node(ROWS + "/FrontBumper").selected, get_node(ROWS + "/RearBumper").selected, get_node(ROWS + "/SideSkirts").selected))
+
+
+func _on_spoiler_choice(_index: int) -> void:
+	_show_save_result(GameSettings.set_spoiler(get_node(ROWS + "/Spoiler").selected, get_node(ROWS + "/SpoilerFinish").selected))
+	get_node(ROWS + "/SpoilerFinish").disabled = GameSettings.car_spoiler == 0
 
 
 func _on_choice(_index: int) -> void:

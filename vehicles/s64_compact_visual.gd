@@ -10,11 +10,13 @@ const PAINT_NAMES: Array[String] = ["Electric blue", "Racing red", "Midnight bla
 const PAINT_COLORS: Array[Color] = [Color(0.015, 0.09, 0.55), Color(0.65, 0.012, 0.025), Color(0.012, 0.016, 0.022), Color(0.8, 0.82, 0.85), Color(0.9, 0.5, 0.01), Color(0.26, 0.025, 0.6)]
 const VINYL_COLORS: Array[Color] = [Color(0.95, 0.95, 0.95), Color(0.008, 0.008, 0.01), Color(1.0, 0.65, 0.015)]
 const VINYL_SHADER: Shader = preload("res://vehicles/car_vinyl.gdshader")
+const SPOILERS: Array[PackedScene] = [preload("res://assets/vehicles/s64_compact/S64_Compact_Spoiler.glb"), preload("res://assets/vehicles/s64_compact/S64_Compact_Spoiler_2.glb")]
 
 const PART_NAMES := ["Core", "FrontBumper", "RearBumper", "SideSkirts"]
 var _parts_signature := Vector4i(-1, -1, -1, -1)
 var _body_index: int = -1
 var _wheel_index: int = -1
+var _spoiler_index: int = -1
 
 var _roll_angle: float = 0.0
 @onready var _wheels: Array[Node3D] = [$FrontLeft/Spin, $FrontRight/Spin, $RearLeft/Spin, $RearRight/Spin]
@@ -46,6 +48,7 @@ func apply_saved_style() -> void:
 			var scene: PackedScene = LEFT_WHEELS[GameSettings.car_wheels] if index % 2 == 0 else RIGHT_WHEELS[GameSettings.car_wheels]
 			_replace_model(_wheels[index], "Model", scene)
 		_wheel_index = GameSettings.car_wheels
+	_apply_spoiler()
 	for mesh in $Body.find_children("*", "MeshInstance3D", true, false):
 		for surface in range(mesh.mesh.get_surface_count()):
 			var original: Material = mesh.mesh.surface_get_material(surface)
@@ -68,6 +71,28 @@ func apply_saved_style() -> void:
 				paint.albedo_color = PAINT_COLORS[GameSettings.car_paint]
 				mesh.set_surface_override_material(surface, paint)
 	reset_physics_interpolation()
+
+
+func _apply_spoiler() -> void:
+	if _spoiler_index != GameSettings.car_spoiler:
+		for old in $Spoiler.get_children():
+			$Spoiler.remove_child(old)
+			old.queue_free()
+		if GameSettings.car_spoiler > 0:
+			var model: Node3D = SPOILERS[GameSettings.car_spoiler - 1].instantiate()
+			model.name = "Model"
+			model.rotation.y = -PI / 2.0
+			model.scale = Vector3.ONE * 1.218064
+			$Spoiler.add_child(model)
+		_spoiler_index = GameSettings.car_spoiler
+	# The widebody upper hatch sits about 0.01m lower at the shared mounting point.
+	$Spoiler.position = Vector3(0, 0.97 if GameSettings.car_body == 2 else 0.98, 1.82)
+	for mesh: MeshInstance3D in $Spoiler.find_children("*", "MeshInstance3D", true, false):
+		var finish := StandardMaterial3D.new()
+		finish.albedo_color = PAINT_COLORS[GameSettings.car_paint] if GameSettings.spoiler_finish == 0 else Color(0.018, 0.021, 0.025)
+		finish.metallic = 0.45 if GameSettings.spoiler_finish == 0 else 0.1
+		finish.roughness = 0.3 if GameSettings.spoiler_finish == 0 else 0.65
+		mesh.material_override = finish
 
 
 func _replace_model(parent_node: Node, model_name: String, scene: PackedScene) -> Node3D:

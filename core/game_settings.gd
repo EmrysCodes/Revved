@@ -29,6 +29,8 @@ var tires_brand: int = 0
 var front_bumper: int = 0
 var rear_bumper: int = 0
 var side_skirts: int = 0
+var car_spoiler: int = 0
+var spoiler_finish: int = 0
 
 
 func _ready() -> void:
@@ -51,6 +53,8 @@ func _ready() -> void:
 		front_bumper = _load_choice(config, "front_bumper", 3, car_body)
 		rear_bumper = _load_choice(config, "rear_bumper", 3, car_body)
 		side_skirts = _load_choice(config, "side_skirts", 3, car_body)
+		car_spoiler = _load_choice(config, "spoiler", 3)
+		spoiler_finish = _load_choice(config, "spoiler_finish", 2)
 
 
 func set_unit_system(value: int, persist: bool = true) -> Error:
@@ -98,6 +102,15 @@ func set_kit_preset(kit: int, persist: bool = true) -> Error:
 		return ERR_INVALID_PARAMETER
 	car_body = kit
 	return set_body_parts(kit, kit, kit, persist)
+
+
+func set_spoiler(style: int, finish: int, persist: bool = true) -> Error:
+	if style not in range(3) or finish not in range(2):
+		return ERR_INVALID_PARAMETER
+	car_spoiler = style
+	spoiler_finish = finish
+	car_style_changed.emit()
+	return _save_preferences() if persist else OK
 
 
 func set_performance_brands(engine: int, brakes: int, tires: int, persist: bool = true) -> Error:
@@ -156,6 +169,8 @@ func _save_preferences() -> Error:
 	config.set_value("car", "front_bumper", front_bumper)
 	config.set_value("car", "rear_bumper", rear_bumper)
 	config.set_value("car", "side_skirts", side_skirts)
+	config.set_value("car", "spoiler", car_spoiler)
+	config.set_value("car", "spoiler_finish", spoiler_finish)
 	return config.save(settings_path)
 
 

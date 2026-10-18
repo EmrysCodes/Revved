@@ -27,8 +27,7 @@ The pause menu's Garage now exposes the three body variants, four wheel
 styles, and six paint presets. Choices apply live to the car and its isolated
 3D preview and are stored alongside unit preferences in user://settings.cfg.
 The modular meshes bake in adjusted offsets to keep their wheel arches aligned
-with the shared wheel pivots. The two spoiler assets are included but are not yet
-exposed as a garage option.
+with the shared wheel pivots. Both spoiler assets are available through the garage spoiler selector.
 
 The garage now separates Performance, Visuals, and Paint/decals. Performance
 levels change acceleration/top-speed limits, braking, and road grip without
@@ -81,3 +80,18 @@ from stock controller stats, so repeated selections never compound.
 Choices persist alongside existing preferences. Older saves inherit matching
 bumper/skirt choices from their saved kit and default to Vector brands.
 The parts list scrolls; Back remains outside the scrolling area.
+
+
+## Spoiler choices
+
+Visuals now includes None, Street wing and Competition wing, with either
+body-matched paint or a satin-black finish. Both CC0 source spoilers are
+instanced independently at a shared rear-hatch mount. The widebody hatch uses
+a slightly lower mounting height. Source GLBs remain untouched.
+
+Spoilers are cosmetic and do not change acceleration, grip or collision.
+Kit presets, wheel changes and mixed body parts preserve the chosen spoiler.
+Body-matched finishes follow paint changes; satin black stays black. Material
+overrides are local to each instance. None removes the mesh and disables its
+finish selector. Saved preferences include spoiler and finish; older saves
+default to None.
