@@ -19,6 +19,7 @@ func _ready() -> void:
 		var gate: Area3D = get_node("Gates/Gate%d" % index)
 		gate.body_entered.connect(_on_gate_entered.bind(index))
 	car.connect("reset_to_spawn", _restart_attempt)
+	GameSettings.units_changed.connect(_update_readout)
 	_update_readout()
 
 

@@ -41,6 +41,7 @@ func _ready() -> void:
 	_camera_arm.add_excluded_object(get_rid())
 	_camera_arm.top_level = true
 	_snap_camera()
+	GameSettings.units_changed.connect(_update_speed_readout)
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -53,8 +54,7 @@ func _physics_process(delta: float) -> void:
 	var throttle: float = float(_held(KEY_W, KEY_UP)) - float(_held(KEY_S, KEY_DOWN))
 	var steering: float = float(_held(KEY_D, KEY_RIGHT)) - float(_held(KEY_A, KEY_LEFT))
 	_step_motion(delta, throttle, steering, Input.is_physical_key_pressed(KEY_SHIFT), Input.is_physical_key_pressed(KEY_SPACE))
-	var horizontal_speed: float = Vector2(velocity.x, velocity.z).length()
-	_readout.text = GameSettings.format_speed(horizontal_speed)
+	_update_speed_readout()
 	_status.text = "HANDBRAKE" if _handbraking else "GRIP"
 	if global_position.y < -10.0:
 		_reset_car()
@@ -119,6 +119,10 @@ func _process(delta: float) -> void:
 
 func _held(first: Key, second: Key) -> bool:
 	return Input.is_physical_key_pressed(first) or Input.is_physical_key_pressed(second)
+
+
+func _update_speed_readout() -> void:
+	_readout.text = GameSettings.format_speed(Vector2(velocity.x, velocity.z).length())
 
 
 func _snap_camera() -> void:

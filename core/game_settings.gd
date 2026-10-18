@@ -1,5 +1,5 @@
 extends Node
-## Shared display preference for the future settings menu. Physics stays in SI units.
+## Shared display preference used by the pause/settings menu. Physics stays in SI units.
 
 signal units_changed
 
