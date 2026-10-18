@@ -54,8 +54,6 @@ func _ready() -> void:
 	_vinyl_color.item_selected.connect(_on_vinyl_choice)
 	_sections.tab_changed.connect(_show_section)
 	_back.pressed.connect(func() -> void: back_requested.emit())
-	get_node(ROWS + "/Rotation/Left").pressed.connect(func() -> void: _model.rotate_y(deg_to_rad(-30.0)))
-	get_node(ROWS + "/Rotation/Right").pressed.connect(func() -> void: _model.rotate_y(deg_to_rad(30.0)))
 	_preview.gui_input.connect(_on_preview_input)
 	_preview.mouse_default_cursor_shape = Control.CURSOR_DRAG
 	GameSettings.units_changed.connect(_refresh_summary)

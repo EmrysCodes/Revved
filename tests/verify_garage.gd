@@ -70,11 +70,6 @@ func _run() -> void:
 	root.add_child(restored)
 	assert(restored.car_body == 2 and restored.car_wheels == 3 and restored.car_paint == 4 and restored.unit_system == 1, "Style and unit preferences must save together")
 	restored.queue_free()
-	var yaw_before: float = preview.rotation.y
-	rows.get_node("Rotation/Left").pressed.emit()
-	assert(preview.rotation.y < yaw_before, "Preview rotate button")
-	rows.get_node("Rotation/Right").pressed.emit()
-	assert(is_equal_approx(preview.rotation.y, yaw_before))
 	var escape := InputEventKey.new()
 	escape.keycode = KEY_ESCAPE
 	escape.physical_keycode = KEY_ESCAPE
@@ -96,7 +91,7 @@ func _run() -> void:
 	settings.settings_path = old_path
 	settings.set_car_style(old_style.x, old_style.y, old_style.z, false)
 	settings.set_unit_system(old_units, false)
-	print("PASS: garage navigation, responsive layout, all 12 body/wheel combinations, six paints, wheel animation after swaps, shared live preview, preview rotation, combined persistence, invalid preferences")
+	print("PASS: garage navigation, responsive layout, all 12 body/wheel combinations, six paints, wheel animation after swaps, shared live preview, combined persistence, invalid preferences")
 	quit()
 
 func _paint(visual: Node3D) -> StandardMaterial3D:

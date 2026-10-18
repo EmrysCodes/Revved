@@ -212,22 +212,6 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 36)
 theme_override_font_sizes/font_size = 18
 
-[node name="Rotation" type="HBoxContainer" parent="Frame/Stack/Content/Options/Padding/Rows"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Left" type="Button" parent="Frame/Stack/Content/Options/Padding/Rows/Rotation"]
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 32)
-text = "Rotate left"
-
-[node name="Right" type="Button" parent="Frame/Stack/Content/Options/Padding/Rows/Rotation"]
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 32)
-text = "Rotate right"
-
 [node name="Feedback" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 36)
