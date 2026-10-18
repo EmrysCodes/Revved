@@ -1,0 +1,215 @@
+[gd_scene load_steps=14 format=3]
+
+[sub_resource type="StandardMaterial3D" id="Material_Ground"]
+albedo_color = Color(0.13, 0.19, 0.14, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Material_Road"]
+albedo_color = Color(0.065, 0.075, 0.09, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Material_Concrete"]
+albedo_color = Color(0.55, 0.58, 0.62, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Material_Paint"]
+albedo_color = Color(0.95, 0.82, 0.3, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="Mesh_Ground"]
+size = Vector3(100, 0.5, 160)
+
+[sub_resource type="BoxShape3D" id="Shape_Ground"]
+size = Vector3(100, 0.5, 160)
+
+[sub_resource type="BoxMesh" id="Mesh_Road"]
+size = Vector3(16, 0.2, 120)
+
+[sub_resource type="BoxShape3D" id="Shape_Road"]
+size = Vector3(16, 0.2, 120)
+
+[sub_resource type="BoxMesh" id="Mesh_Barrier"]
+size = Vector3(0.5, 1, 120)
+
+[sub_resource type="BoxShape3D" id="Shape_Barrier"]
+size = Vector3(0.5, 1, 120)
+
+[sub_resource type="BoxMesh" id="Mesh_End"]
+size = Vector3(16, 1, 0.5)
+
+[sub_resource type="BoxShape3D" id="Shape_End"]
+size = Vector3(16, 1, 0.5)
+
+[sub_resource type="BoxMesh" id="Mesh_Stripe"]
+size = Vector3(0.18, 0.02, 3)
+
+[node name="TestEnvironment" type="Node3D"]
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-55, -30, 0)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="OverviewCamera" type="Camera3D" parent="."]
+position = Vector3(26, 30, 40)
+rotation_degrees = Vector3(-32, 33, 0)
+current = true
+far = 300.0
+
+[node name="VehicleSpawn" type="Marker3D" parent="."]
+position = Vector3(3.5, 1, 45)
+
+[node name="Ground" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.25, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("Mesh_Ground")
+material_override = SubResource("Material_Ground")
+
+[node name="Collision" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("Shape_Ground")
+
+[node name="Road" type="StaticBody3D" parent="."]
+position = Vector3(0, 0.1, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Road"]
+mesh = SubResource("Mesh_Road")
+material_override = SubResource("Material_Road")
+
+[node name="Collision" type="CollisionShape3D" parent="Road"]
+shape = SubResource("Shape_Road")
+
+[node name="LeftBarrier" type="StaticBody3D" parent="."]
+position = Vector3(-8.25, 0.7, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="LeftBarrier"]
+mesh = SubResource("Mesh_Barrier")
+material_override = SubResource("Material_Concrete")
+
+[node name="Collision" type="CollisionShape3D" parent="LeftBarrier"]
+shape = SubResource("Shape_Barrier")
+
+[node name="RightBarrier" type="StaticBody3D" parent="."]
+position = Vector3(8.25, 0.7, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="RightBarrier"]
+mesh = SubResource("Mesh_Barrier")
+material_override = SubResource("Material_Concrete")
+
+[node name="Collision" type="CollisionShape3D" parent="RightBarrier"]
+shape = SubResource("Shape_Barrier")
+
+[node name="NorthBarrier" type="StaticBody3D" parent="."]
+position = Vector3(0, 0.7, -60.25)
+
+[node name="Mesh" type="MeshInstance3D" parent="NorthBarrier"]
+mesh = SubResource("Mesh_End")
+material_override = SubResource("Material_Concrete")
+
+[node name="Collision" type="CollisionShape3D" parent="NorthBarrier"]
+shape = SubResource("Shape_End")
+
+[node name="SouthBarrier" type="StaticBody3D" parent="."]
+position = Vector3(0, 0.7, 60.25)
+
+[node name="Mesh" type="MeshInstance3D" parent="SouthBarrier"]
+mesh = SubResource("Mesh_End")
+material_override = SubResource("Material_Concrete")
+
+[node name="Collision" type="CollisionShape3D" parent="SouthBarrier"]
+shape = SubResource("Shape_End")
+
+[node name="CenterStripe1" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, -54)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, -48)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe3" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, -42)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe4" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, -36)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe5" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, -30)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe6" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, -24)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe7" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, -18)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe8" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, -12)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe9" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, -6)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe10" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, 0)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe11" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, 6)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe12" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, 12)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe13" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, 18)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe14" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, 24)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe15" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, 30)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe16" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, 36)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe17" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, 42)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe18" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, 48)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
+
+[node name="CenterStripe19" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.215, 54)
+mesh = SubResource("Mesh_Stripe")
+material_override = SubResource("Material_Paint")
