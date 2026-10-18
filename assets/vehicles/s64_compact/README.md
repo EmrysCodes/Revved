@@ -29,3 +29,17 @@ styles, and six paint presets. Choices apply live to the car and its isolated
 Body variants use adjusted offsets to keep their wheel arches aligned with
 the shared wheel pivots. The two spoiler assets are included but are not yet
 exposed as a garage option.
+
+The garage now separates Performance, Visuals, and Paint/decals. Performance
+levels change acceleration/top-speed limits, braking, and road grip without
+changing meshes. Paint/decals offers procedural twin hood stripes and a side
+flash in three vinyl colors. The spatial material works without UV textures
+or Decal nodes, keeping the Compatibility renderer supported. These are
+preset vinyl graphics, not a free-placement decal editor.
+
+Drag the car preview to rotate and tilt inspection, or scroll to zoom.
+The preview stage has workshop walls, lighting, a display platform, and a
+tool cabinet. Physics interpolation and an interpolated chase-camera target
+reduce tick-rate stepping in driving. The handbrake retains lateral momentum
+and blends grip back after release; the controller is still a kinematic arcade
+model rather than a full AWD/RWD drivetrain simulation.

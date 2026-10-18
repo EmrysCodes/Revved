@@ -9,7 +9,7 @@ signal reset_to_spawn
 @export var acceleration: float = 12.0
 @export var braking: float = 26.0
 @export var rolling_drag: float = 2.0
-@export var handbrake_drag: float = 5.0
+@export var handbrake_drag: float = 2.2
 
 @export_group("Steering and grip")
 @export var low_speed_turn_rate: float = 2.0
@@ -17,8 +17,8 @@ signal reset_to_spawn
 @export var steering_response: float = 5.0
 @export var steering_return: float = 7.5
 @export var road_grip: float = 10.0
-@export var slide_grip: float = 1.6
-@export var handbrake_turn_boost: float = 1.45
+@export var slide_grip: float = 0.65
+@export var handbrake_turn_boost: float = 1.65
 
 var _speed: float = 0.0
 var _steering: float = 0.0
@@ -26,6 +26,8 @@ var _yaw_rate: float = 0.0
 var _grip: float = 10.0
 var _spawn_transform: Transform3D
 var _handbraking: bool = false
+var _drift_blend: float = 0.0
+var _stock_stats: Dictionary
 
 @onready var _readout: Label = $HUD/Screen/DrivePanel/Padding/Stack/Readout
 @onready var _status: Label = $HUD/Screen/DrivePanel/Padding/Stack/Status
@@ -37,11 +39,16 @@ var _handbraking: bool = false
 
 func _ready() -> void:
 	_spawn_transform = global_transform
+	_stock_stats = {"top_speed": top_speed, "acceleration": acceleration, "braking": braking, "grip": road_grip}
+	_apply_performance()
+	GameSettings.performance_changed.connect(_apply_performance)
 	_grip = road_grip
 	_camera_arm.add_excluded_object(get_rid())
 	_camera_arm.top_level = true
+	_camera_arm.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	_snap_camera()
 	GameSettings.units_changed.connect(_update_speed_readout)
+	reset_physics_interpolation()
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -55,7 +62,7 @@ func _physics_process(delta: float) -> void:
 	var steering: float = float(_held(KEY_D, KEY_RIGHT)) - float(_held(KEY_A, KEY_LEFT))
 	_step_motion(delta, throttle, steering, Input.is_physical_key_pressed(KEY_SHIFT), Input.is_physical_key_pressed(KEY_SPACE))
 	_update_speed_readout()
-	_status.text = "HANDBRAKE" if _handbraking else "GRIP"
+	_status.text = "HANDBRAKE" if _handbraking else ("DRIFT / RECOVER" if _drift_blend > 0.15 else "GRIP")
 	if global_position.y < -10.0:
 		_reset_car()
 
@@ -67,6 +74,7 @@ func _step_motion(delta: float, throttle: float, steering: float, footbrake: boo
 	var right: Vector3 = global_basis.x
 	_speed = planar.dot(forward)
 	_handbraking = handbrake and grounded and planar.length() > 3.0
+	_drift_blend = move_toward(_drift_blend, 1.0 if _handbraking else 0.0, (12.0 if _handbraking else 1.3) * delta)
 	var response: float = steering_return if is_zero_approx(steering) else steering_response
 	_steering = move_toward(_steering, clampf(steering, -1.0, 1.0), response * delta)
 	if grounded:
@@ -86,15 +94,15 @@ func _step_motion(delta: float, throttle: float, steering: float, footbrake: boo
 		var turn_rate: float = lerpf(low_speed_turn_rate, high_speed_turn_rate, speed_ratio)
 		var travel_sign: float = signf(planar.dot(forward))
 		var low_speed_weight: float = clampf(absf(planar.dot(forward)) / 4.0, 0.0, 1.0)
-		var boost: float = handbrake_turn_boost if _handbraking else 1.0
+		var boost: float = lerpf(1.0, handbrake_turn_boost, _drift_blend)
 		var target_yaw: float = -_steering * turn_rate * low_speed_weight * travel_sign * boost
 		_yaw_rate = lerpf(_yaw_rate, target_yaw, 1.0 - exp(-10.0 * delta))
 		rotate_y(_yaw_rate * delta)
 
 		# Turn the body without snapping its world-space momentum to the new heading.
 		right = global_basis.x
-		var target_grip: float = slide_grip if _handbraking else road_grip
-		_grip = lerpf(_grip, target_grip, 1.0 - exp(-8.0 * delta))
+		var target_grip: float = lerpf(road_grip, slide_grip, _drift_blend)
+		_grip = lerpf(_grip, target_grip, 1.0 - exp(-(18.0 if _handbraking else 8.0) * delta))
 		planar -= right * planar.dot(right) * (1.0 - exp(-_grip * delta))
 		planar = planar.limit_length(top_speed)
 		velocity.y = -0.5
@@ -105,16 +113,25 @@ func _step_motion(delta: float, throttle: float, steering: float, footbrake: boo
 	move_and_slide()
 	_speed = Vector3(velocity.x, 0.0, velocity.z).dot(-global_basis.z)
 	_car_model.update_wheels(_steering, _speed if is_on_floor() else 0.0, delta)
+	var roll_ratio: float = clampf(planar.length() / top_speed, 0.0, 1.0)
+	_visuals.rotation.z = lerpf(_visuals.rotation.z, _steering * roll_ratio * deg_to_rad(4.0), 1.0 - exp(-14.0 * delta))
 
 
 func _process(delta: float) -> void:
 	var speed_ratio: float = clampf(Vector2(velocity.x, velocity.z).length() / top_speed, 0.0, 1.0)
 	var follow: float = 1.0 - exp(-14.0 * delta)
-	_camera_arm.global_position = _camera_arm.global_position.lerp(global_position + Vector3.UP * 1.5, follow)
-	_camera_arm.rotation.y = lerp_angle(_camera_arm.rotation.y, global_rotation.y, 1.0 - exp(-7.0 * delta))
-	_camera_arm.spring_length = lerpf(_camera_arm.spring_length, 7.5 + speed_ratio, follow)
+	var rendered_transform: Transform3D = get_global_transform_interpolated()
+	_camera_arm.global_position = _camera_arm.global_position.lerp(rendered_transform.origin + Vector3.UP * 1.5, follow)
+	_camera_arm.rotation.y = lerp_angle(_camera_arm.rotation.y, rendered_transform.basis.get_euler().y, 1.0 - exp(-7.0 * delta))
 	_camera.fov = lerpf(_camera.fov, 75.0 + speed_ratio * 7.0, 1.0 - exp(-3.0 * delta))
-	_visuals.rotation.z = lerpf(_visuals.rotation.z, _steering * speed_ratio * deg_to_rad(4.0), follow)
+
+
+func _apply_performance() -> void:
+	var upgrades: Dictionary = GameSettings.performance_multipliers()
+	top_speed = _stock_stats.top_speed * upgrades.top_speed
+	acceleration = _stock_stats.acceleration * upgrades.acceleration
+	braking = _stock_stats.braking * upgrades.braking
+	road_grip = _stock_stats.grip * upgrades.grip
 
 
 func _held(first: Key, second: Key) -> bool:
@@ -140,6 +157,7 @@ func _reset_car() -> void:
 	_yaw_rate = 0.0
 	_grip = road_grip
 	_handbraking = false
+	_drift_blend = 0.0
 	_visuals.rotation = Vector3.ZERO
 	_car_model.reset_wheels()
 	_snap_camera()

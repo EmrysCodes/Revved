@@ -10,6 +10,8 @@ const RIGHT_WHEELS: Array[PackedScene] = [preload("res://assets/vehicles/s64_com
 const BODY_OFFSETS: Array[Vector3] = [Vector3(0, 0.080392, 0.14696), Vector3(0, 0.0542, 0.07218), Vector3(0, 0.0241, -0.03331)]
 const PAINT_NAMES: Array[String] = ["Electric blue", "Racing red", "Midnight black", "Pearl white", "Sunburst yellow", "Violet"]
 const PAINT_COLORS: Array[Color] = [Color(0.015, 0.09, 0.55), Color(0.65, 0.012, 0.025), Color(0.012, 0.016, 0.022), Color(0.8, 0.82, 0.85), Color(0.9, 0.5, 0.01), Color(0.26, 0.025, 0.6)]
+const VINYL_COLORS: Array[Color] = [Color(0.95, 0.95, 0.95), Color(0.008, 0.008, 0.01), Color(1.0, 0.65, 0.015)]
+const VINYL_SHADER: Shader = preload("res://vehicles/car_vinyl.gdshader")
 
 var _body_index: int = -1
 var _wheel_index: int = -1
@@ -36,10 +38,25 @@ func apply_saved_style() -> void:
 	for mesh in $Body.find_children("*", "MeshInstance3D", true, false):
 		for surface in range(mesh.mesh.get_surface_count()):
 			var original: Material = mesh.mesh.surface_get_material(surface)
-			if original != null and original.resource_name == "Car":
+			mesh.set_surface_override_material(surface, null)
+			if original == null:
+				continue
+			var is_paint: bool = original.resource_name == "Car"
+			if GameSettings.car_vinyl != 0 and (is_paint or original.resource_name in ["Det", "Det2"]):
+				var vinyl := ShaderMaterial.new()
+				vinyl.shader = VINYL_SHADER
+				vinyl.set_shader_parameter("base_color", PAINT_COLORS[GameSettings.car_paint] if is_paint else original.albedo_color)
+				vinyl.set_shader_parameter("vinyl_color", VINYL_COLORS[GameSettings.car_vinyl_color])
+				vinyl.set_shader_parameter("vinyl_style", GameSettings.car_vinyl)
+				vinyl.set_shader_parameter("base_metallic", original.metallic)
+				vinyl.set_shader_parameter("base_roughness", original.roughness)
+				vinyl.set_shader_parameter("mesh_to_car", global_transform.affine_inverse() * mesh.global_transform)
+				mesh.set_surface_override_material(surface, vinyl)
+			elif is_paint:
 				var paint: StandardMaterial3D = original.duplicate()
 				paint.albedo_color = PAINT_COLORS[GameSettings.car_paint]
 				mesh.set_surface_override_material(surface, paint)
+	reset_physics_interpolation()
 
 
 func _replace_model(parent_node: Node, model_name: String, scene: PackedScene) -> Node3D:

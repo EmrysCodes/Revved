@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://ui/garage_menu.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://vehicles/s64_compact_visual.tscn" id="2_car"]
@@ -16,6 +16,51 @@ size = Vector2(12, 12)
 [sub_resource type="StandardMaterial3D" id="FloorMaterial"]
 albedo_color = Color(0.08, 0.1, 0.14, 1)
 roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="WallMaterial"]
+albedo_color = Color(0.05, 0.065, 0.085, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="LampMaterial"]
+albedo_color = Color(0.3, 0.8, 1, 1)
+emission_enabled = true
+emission = Color(0.2, 0.65, 1, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="StandardMaterial3D" id="CabinetMaterial"]
+albedo_color = Color(0.3, 0.025, 0.025, 1)
+metallic = 0.3
+roughness = 0.5
+
+[sub_resource type="CylinderMesh" id="PlatformMesh"]
+top_radius = 3.1
+bottom_radius = 3.1
+height = 0.1
+radial_segments = 64
+
+[sub_resource type="BoxMesh" id="BackWallMesh"]
+size = Vector3(12, 4, 0.15)
+
+[sub_resource type="BoxMesh" id="SideWallMesh"]
+size = Vector3(0.15, 4, 12)
+
+[sub_resource type="BoxMesh" id="BackLampMesh"]
+size = Vector3(8, 0.08, 0.12)
+
+[sub_resource type="BoxMesh" id="ToolCabinetMesh"]
+size = Vector3(1.6, 1.4, 0.6)
+
+[sub_resource type="BoxMesh" id="Drawer0Mesh"]
+size = Vector3(1.4, 0.03, 0.03)
+
+[sub_resource type="BoxMesh" id="Drawer1Mesh"]
+size = Vector3(1.4, 0.03, 0.03)
+
+[sub_resource type="BoxMesh" id="Drawer2Mesh"]
+size = Vector3(1.4, 0.03, 0.03)
+
+[sub_resource type="BoxMesh" id="Drawer3Mesh"]
+size = Vector3(1.4, 0.03, 0.03)
 
 [node name="GarageMenu" type="Control"]
 visible = false
@@ -57,59 +102,115 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 30
 text = "REVVED / GARAGE"
 
+[node name="Sections" type="TabBar" parent="Frame/Stack"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+
 [node name="Content" type="HBoxContainer" parent="Frame/Stack"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 24
 
 [node name="Options" type="PanelContainer" parent="Frame/Stack/Content"]
-custom_minimum_size = Vector2(330, 0)
+custom_minimum_size = Vector2(340, 0)
 layout_mode = 2
 
 [node name="Padding" type="MarginContainer" parent="Frame/Stack/Content/Options"]
 layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
 
 [node name="Rows" type="VBoxContainer" parent="Frame/Stack/Content/Options/Padding"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
+
+[node name="Description" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 38)
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 3
+
+[node name="EngineLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "ENGINE / TRANSMISSION"
+
+[node name="Engine" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+theme_override_font_sizes/font_size = 18
+
+[node name="BrakesLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "BRAKES"
+
+[node name="Brakes" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+theme_override_font_sizes/font_size = 18
+
+[node name="TiresLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "TIRE COMPOUND"
+
+[node name="Tires" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+theme_override_font_sizes/font_size = 18
+
+[node name="VinylLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "VINYL PRESET"
+
+[node name="Vinyl" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+theme_override_font_sizes/font_size = 18
+
+[node name="VinylColorLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "VINYL COLOR"
+
+[node name="VinylColor" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+theme_override_font_sizes/font_size = 18
 
 [node name="BodyLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 text = "BODY KIT"
 
 [node name="Body" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 46)
+custom_minimum_size = Vector2(0, 36)
 theme_override_font_sizes/font_size = 18
 
 [node name="WheelsLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 text = "WHEELS"
 
 [node name="Wheels" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 46)
+custom_minimum_size = Vector2(0, 36)
 theme_override_font_sizes/font_size = 18
 
 [node name="PaintLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 text = "PAINT"
 
 [node name="Paint" type="OptionButton" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 46)
+custom_minimum_size = Vector2(0, 36)
 theme_override_font_sizes/font_size = 18
-
-[node name="RotationLabel" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
-layout_mode = 2
-text = "INSPECT CAR"
 
 [node name="Rotation" type="HBoxContainer" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
@@ -118,19 +219,19 @@ theme_override_constants/separation = 10
 [node name="Left" type="Button" parent="Frame/Stack/Content/Options/Padding/Rows/Rotation"]
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 32)
 text = "Rotate left"
 
 [node name="Right" type="Button" parent="Frame/Stack/Content/Options/Padding/Rows/Rotation"]
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 32)
 text = "Rotate right"
 
 [node name="Feedback" type="Label" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 64)
-theme_override_font_sizes/font_size = 16
+custom_minimum_size = Vector2(0, 36)
+theme_override_font_sizes/font_size = 14
 autowrap_mode = 3
 text = "Changes apply to your car and save automatically."
 
@@ -140,7 +241,7 @@ size_flags_vertical = 3
 
 [node name="Back" type="Button" parent="Frame/Stack/Content/Options/Padding/Rows"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 46)
+custom_minimum_size = Vector2(0, 36)
 theme_override_font_sizes/font_size = 18
 text = "Back to pause menu"
 
@@ -154,7 +255,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 stretch = true
-mouse_filter = 2
+mouse_filter = 0
 
 [node name="Viewport" type="SubViewport" parent="Frame/Stack/Content/Preview"]
 own_world_3d = true
@@ -162,6 +263,7 @@ size = Vector2i(760, 580)
 render_target_update_mode = 0
 
 [node name="Stage" type="Node3D" parent="Frame/Stack/Content/Preview/Viewport"]
+physics_interpolation_mode = 2
 
 [node name="Environment" type="WorldEnvironment" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
 environment = SubResource("Environment")
@@ -176,7 +278,7 @@ rotation_degrees = Vector3(-25, 145, 0)
 light_energy = 0.7
 
 [node name="Floor" type="MeshInstance3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
-position = Vector3(0, -0.01, 0)
+position = Vector3(0, -0.11, 0)
 mesh = SubResource("Floor")
 material_override = SubResource("FloorMaterial")
 
@@ -186,4 +288,74 @@ material_override = SubResource("FloorMaterial")
 position = Vector3(5, 2.7, -5)
 fov = 42.0
 current = true
+
+[node name="Platform" type="MeshInstance3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+position = Vector3(0, -0.05, 0)
+mesh = SubResource("PlatformMesh")
+material_override = SubResource("FloorMaterial")
+
+[node name="BackWall" type="MeshInstance3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+position = Vector3(0, 1.9, 4)
+mesh = SubResource("BackWallMesh")
+material_override = SubResource("WallMaterial")
+
+[node name="SideWall" type="MeshInstance3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+position = Vector3(-5, 1.9, 0)
+mesh = SubResource("SideWallMesh")
+material_override = SubResource("WallMaterial")
+
+[node name="BackLamp" type="MeshInstance3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+position = Vector3(0, 3.0, 3.9)
+mesh = SubResource("BackLampMesh")
+material_override = SubResource("LampMaterial")
+
+[node name="ToolCabinet" type="MeshInstance3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+position = Vector3(-3.4, 0.59, 3.0)
+mesh = SubResource("ToolCabinetMesh")
+material_override = SubResource("CabinetMaterial")
+
+[node name="Drawer0" type="MeshInstance3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+position = Vector3(-3.4, 0.2, 2.685)
+mesh = SubResource("Drawer0Mesh")
+material_override = SubResource("WallMaterial")
+
+[node name="Drawer1" type="MeshInstance3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+position = Vector3(-3.4, 0.44, 2.685)
+mesh = SubResource("Drawer1Mesh")
+material_override = SubResource("WallMaterial")
+
+[node name="Drawer2" type="MeshInstance3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+position = Vector3(-3.4, 0.6799999999999999, 2.685)
+mesh = SubResource("Drawer2Mesh")
+material_override = SubResource("WallMaterial")
+
+[node name="Drawer3" type="MeshInstance3D" parent="Frame/Stack/Content/Preview/Viewport/Stage"]
+position = Vector3(-3.4, 0.9199999999999999, 2.685)
+mesh = SubResource("Drawer3Mesh")
+material_override = SubResource("WallMaterial")
+
+[node name="StatsPanel" type="PanelContainer" parent="Frame/Stack/Content/Preview"]
+layout_mode = 0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = -105.0
+offset_right = -14.0
+offset_bottom = -14.0
+mouse_filter = 2
+
+[node name="Padding" type="MarginContainer" parent="Frame/Stack/Content/Preview/StatsPanel"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="Stats" type="Label" parent="Frame/Stack/Content/Preview/StatsPanel/Padding"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
 
