@@ -1,6 +1,8 @@
 extends CharacterBody3D
 ## First flat-road arcade prototype. Forward is local -Z; distances are meters.
 
+signal reset_to_spawn
+
 @export var top_speed: float = 32.0
 @export var reverse_speed: float = 9.0
 @export var acceleration: float = 12.0
@@ -66,3 +68,4 @@ func _reset_car() -> void:
 	velocity = Vector3.ZERO
 	_speed = 0.0
 	reset_physics_interpolation()
+	reset_to_spawn.emit()
