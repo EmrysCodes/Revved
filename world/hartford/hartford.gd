@@ -6,6 +6,11 @@ func _ready() -> void:
 	super._ready()
 	car.get_node("CameraArm/FollowCamera").far = 5000
 	car.reset_to_spawn.connect(_restore_glass)
+	if FileAccess.file_exists("res://racing/capital_run_route.json"):
+		call_deferred("_add_city_race")
+func _add_city_race() -> void:
+	if get_node_or_null("CityRace")==null:
+		add_child(load("res://racing/capital_run.tscn").instantiate())
 func _restore_glass() -> void:
 	for pane in $Shortcuts.find_children("*","Area3D",true,false):
 		pane.restore()

@@ -41,6 +41,19 @@ func _draw() -> void:
 		draw_colored_polygon(water_polygon,Color(0.10,0.30,0.42))
 	for road in cached_roads:
 		draw_polyline(road[0],road[1],1.5,true)
+	var event:=city.get_node_or_null("CityRace")
+	if is_instance_valid(event):
+		if event.is_active():
+			var course:=PackedVector2Array()
+			for i in range(0,event.finish_index+1,5): course.append(_point(event.route[i]))
+			if course.size()>1: draw_polyline(course,Color(1,0.8,0.2),2.8,true)
+			var target: int=event.next_checkpoint.get(city.car.get_instance_id(),0)
+			if target<event.checkpoint_indices.size():
+				draw_circle(_point(event.route[event.checkpoint_indices[target]]),4,Color(0.15,1,0.65))
+			for rival in event.opponents:
+				draw_circle(_point(rival.position),3,rival.rival_color)
+		else:
+			draw_circle(_point(event.entry_position),4,Color(1,0.8,0.2))
 	var marker:=_point(city.car.position)
 	var direction:=Vector2(-city.car.global_basis.z.x,-city.car.global_basis.z.z)
 	var side:=Vector2(-direction.y,direction.x)

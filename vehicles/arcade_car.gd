@@ -34,6 +34,7 @@ var _spawn_transform: Transform3D
 var _handbraking: bool = false
 var _drift_blend: float = 0.0
 var _stock_stats: Dictionary
+var controls_locked := false
 
 @onready var _readout: Label = $HUD/Screen/DrivePanel/Padding/Stack/Readout
 @onready var _status: Label = $HUD/Screen/DrivePanel/Padding/Stack/Status
@@ -59,11 +60,15 @@ func _ready() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.physical_keycode == KEY_R:
+		if event.physical_keycode == KEY_R and not controls_locked:
 			_reset_car()
 
 
 func _physics_process(delta: float) -> void:
+	if controls_locked:
+		_step_motion(delta,0.0,0.0,true,false)
+		_update_speed_readout()
+		return
 	var throttle: float = float(_held(KEY_W, KEY_UP)) - float(_held(KEY_S, KEY_DOWN))
 	var steering: float = float(_held(KEY_D, KEY_RIGHT)) - float(_held(KEY_A, KEY_LEFT))
 	_step_motion(delta, throttle, steering, Input.is_physical_key_pressed(KEY_SHIFT), Input.is_physical_key_pressed(KEY_SPACE))

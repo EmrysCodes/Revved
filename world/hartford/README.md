@@ -30,7 +30,7 @@ A true 1:1 phase needs validated street/footprint geometry and terrain heights.
 
 ## Playable layout
 
-The world covers approximately 4.5km by 3.8km. It has 2,083 Quaternius buildings,
+The world covers approximately 4.5km by 3.8km. It has 2,092 Quaternius buildings,
 seven landmark masses and 211 local road/path links, a Connecticut River corridor, Bushnell-inspired park
 routes, local river crossings and west/south/north/east neighborhood approaches.
 There are landmark silhouettes for the Capitol, Travelers Tower, Old State
@@ -41,7 +41,8 @@ four directional interchange ramps, Route 2 approaches, Route 3 / Putnam bridge
 connections and cloverleaf turns. These routes form a connected driving network;
 they do not reproduce every real interchange movement. A separate two-way
 perimeter loop surrounds the playable city and has four local access points
-with ramps on both carriageways. There are 32 ramps/connectors in total.
+with ramps on both carriageways. There are 33 ramps/connectors in total,
+including the I-91 south to Columbus exit used by Capital Run.
 
 Local streets, park drives, lawns, forecourts and open alleys are traversable.
 Ordinary sidewalks have beveled edges. Junctions omit crossing sidewalk strips
@@ -49,7 +50,7 @@ and lane paint. The car can climb small steps up to 0.32m after checking forward
 and overhead clearance and a valid walkable landing. Tall walls and structural
 columns remain solid. Bridge supports avoid lower road corridors.
 
-Four fictional glass-fronted arcades provide drive-through shortcuts.
+Three fictional glass-fronted arcades provide drive-through shortcuts.
 Their upper floors sit on solid corner columns, leaving the ground level open.
 Entering a glass pane breaks its visual and emits short-lived glass particles;
 the pane does not behave as an invisible solid wall. R returns the car to the
@@ -99,7 +100,7 @@ performance certification. Preview captures were taken from the running game.
 
 ## Dense neighborhood infill
 
-Current generated totals: 2,090 ordinary/landmark buildings (2,083 use imported Quaternius architecture), 1,687 kit props, 211 local road links (including 131 service alleys), 10 highway carriageways, 32 ramps and four drive-through glass arcades.
+Current generated totals: 2,099 ordinary/landmark buildings (2,092 use imported Quaternius architecture), 1,693 kit props, 211 local road links (including 131 service alleys), 10 highway carriageways, 33 ramps and three drive-through glass arcades.
 
 The smaller streets and service alleys are fictional gameplay additions, not GIS-derived Hartford streets. Four infill areas connect to the arterial network. Their 16m perimeter boulevards have 65m-radius rounded corners; local streets use gentle shared bends, and main road paths use smooth curves through their geographic anchors. Alleys are 7m wide, unmarked and flush; neighborhood roads are 12–14m wide. Imported buildings face nearby streets and include detailed facades, entrances, windows and roofs. AC units, planters and manhole covers add detail. The park, river, landmark envelopes, highway clearances and glass-arcade approaches remain reserved.
 

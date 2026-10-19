@@ -352,6 +352,7 @@ func _build_highway() -> void:
 	var access:=pos(-1000,-480)
 	connector("Downtown_to_I84_E",access,access+Vector3(-300,0,0),Vector3(-1000,34,-838),Vector3(-700,34,-838))
 	clover("I84_W_to_Downtown",Vector2(-1238,-1100),238,PI/2,34,ground(-1000,-1100))
+	_build_columbus_exit()
 	_build_ring()
 	for entry in [["I-84 / I-91\nHARTFORD INTERCHANGE",Vector3(550,43,-850)],["ROUTE 2\nEAST HARTFORD",Vector3(1400,30,-400)],["ROUTE 3 / PUTNAM\nI-91 ↔ ROUTE 2",Vector3(900,20,1100)]]:
 		label_sign(entry[0],entry[1],0,groups.Signs,true)
@@ -527,6 +528,17 @@ func _dense_frontage(landmarks: Array[Vector3]) -> void:
 			building(p.x,p.z,sx,sz,height,rng.randi_range(0,3))
 			# Paved service yards, ground-floor shop glazing and rooftop equipment.
 			terrain_patch("PavedParcel",p.x-sx*0.5-2,p.z-sz*0.5-2,p.x+sx*0.5+2,p.z+sz*0.5+2,"Walk",0.006,groups.Details,false)
+func _build_columbus_exit() -> void:
+	# Leave I-91 southbound and return to the surface network without a regional lap.
+	var points:=curve(Vector3(538,22,-580),Vector3(538,22,-450),pos(460,-380),pos(410,-250))
+	road("I91_S_to_Columbus",points,8,groups.Ramps,true)
+	ramp_map.append(points)
+	named_routes["I91_S_to_Columbus"]=points
+	# Open merge zones keep railings out of the mainline and surface street.
+	for i in range(34,74):
+		var right: Vector3=(points[i+1]-points[i]).cross(Vector3.UP).normalized()
+		for side in [-1,1]:
+			rail(points[i]+right*side*4,points[i+1]+right*side*4,groups.Ramps)
 func _build_landmarks() -> void:
 	landmark_mode=true
 	# Recognizable blockout silhouettes and approximate locations; no exact facade claim.

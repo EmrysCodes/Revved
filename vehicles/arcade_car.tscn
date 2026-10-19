@@ -87,7 +87,7 @@ text = "000 MPH"
 layout_mode = 2
 mouse_filter = 2
 theme_override_font_sizes/font_size = 16
-text = "W / Up: gas   S / Down: brake / reverse\nA / D or arrows: steer   Shift: brake\nSpace: handbrake   R: restart   Esc: menu"
+text = "W / Up: gas   S / Down: brake / reverse\nA / D or arrows: steer   Shift: brake\nSpace: handbrake   R: reset   Esc: menu"
 autowrap_mode = 3
 
 [node name="Status" type="Label" parent="HUD/Screen/DrivePanel/Padding/Stack"]

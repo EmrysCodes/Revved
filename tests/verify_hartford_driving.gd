@@ -51,7 +51,7 @@ func _run() -> void:
 	var routes: Dictionary=city.get_meta("named_routes")
 	for key in ["Downtown_to_I84_E","I84_E_to_I91_S","I91_S_to_I84_W","I84_W_to_I91_N","I91_N_to_I84_E","I84_E_to_R2_S","R2_N_to_I84_W","I91_S_to_R3_E","R3_W_to_I91_N","R3_W_to_I91_S","R3_E_to_R2_N","R2_S_to_R3_W","I84_W_to_Downtown"]:
 		await drive(car,routes[key],key)
-	for index in [16,18,20,22,24,26,28,30]:
+	for index in [17,19,21,23,25,27,29,31]:
 		await drive(car,city.ramp_roads[index],"Perimeter_%d"%index)
 	# Drive through both glass fronts of the first arcade.
 	var location: Vector3=city.get_meta("glass_locations")[0]
