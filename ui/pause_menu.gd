@@ -21,6 +21,13 @@ func _ready() -> void:
 	$Overlay/Center/Card/Padding/Stack/Garage.pressed.connect(_open_garage)
 	_garage.back_requested.connect(_close_garage)
 	_overlay.hide()
+	var main_button:=Button.new();main_button.text="Main menu";main_button.name="MainMenu"
+	if StreetProfile.driver_created and StreetProfile.launch_mode in ["career","legacy_roam","garage"]: main_button.text="Street Legacy map"
+	main_button.custom_minimum_size.y=44
+	$Overlay/Center/Card/Padding/Stack.add_child(main_button)
+	$Overlay/Center/Card/Padding/Stack.move_child(main_button,$Overlay/Center/Card/Padding/Stack/Hint.get_index())
+	main_button.pressed.connect(func():
+		close_menu();StreetProfile.main_menu())
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -96,6 +103,8 @@ func _open_garage() -> void:
 
 
 func _close_garage() -> void:
+	if StreetProfile.launch_mode=="garage" and StreetProfile.driver_created:
+		close_menu();StreetProfile.main_menu();return
 	_garage.hide()
 	_overlay.show()
 	$Overlay/Center/Card/Padding/Stack/Garage.grab_focus()

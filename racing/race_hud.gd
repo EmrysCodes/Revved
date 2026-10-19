@@ -104,6 +104,7 @@ func show_results(place: int,time: String,best: String,rows: Array,saved: bool) 
 	result_title.text="CAPITAL RUN / FINISHED"
 	result_time.text="%d / 4    •    %s"%[place,time]
 	result_best.text=("Best  " if saved else "Session best  ")+best
+	if not StreetProfile.last_award.is_empty(): result_best.text+="\n"+StreetProfile.last_award
 	for child in standings.get_children():
 		standings.remove_child(child);child.queue_free()
 	for index in range(rows.size()):

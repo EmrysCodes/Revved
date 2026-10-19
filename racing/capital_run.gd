@@ -195,6 +195,7 @@ func _on_player_reset() -> void:
 	recovery_remaining=2.0;player_recoveries+=1
 func _finish_player() -> void:
 	player.controls_locked=true;player.velocity=Vector3.ZERO
+	StreetProfile.record_finish(player_place(),player_recoveries)
 	var time: float=finish_times[player.get_instance_id()]
 	if time<best_time:
 		best_time=time
@@ -214,7 +215,9 @@ func _show_results() -> void:
 	var rows: Array=[]
 	for driver in drivers:
 		var id: int=driver.get_instance_id()
-		rows.append({"name":"YOU" if driver==player else driver.rival_name,"time":time_text(finish_times[id]) if finish_times.has(id) else GameSettings.format_distance(maxf(0,length-progress.get(id,0)))+" left","player":driver==player})
+		var display_name: String="YOU" if driver==player else driver.rival_name
+		if driver==player and StreetProfile.launch_mode=="career" and StreetProfile.driver_created: display_name=StreetProfile.driver_name
+		rows.append({"name":display_name,"time":time_text(finish_times[id]) if finish_times.has(id) else GameSettings.format_distance(maxf(0,length-progress.get(id,0)))+" left","player":driver==player})
 	hud.show_results(player_place(),time_text(time),time_text(best_time),rows,best_saved)
 func exit_to_free_roam() -> void:
 	if state==Phase.FREE_ROAM: return

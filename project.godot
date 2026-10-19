@@ -11,13 +11,14 @@ config_version=5
 [application]
 
 config/name="REVVED"
-run/main_scene="res://scenes/hartford_district.tscn"
+run/main_scene="res://ui/front_end/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
 GameSettings="*res://core/game_settings.gd"
+StreetProfile="*res://core/street_profile.gd"
 
 [display]
 

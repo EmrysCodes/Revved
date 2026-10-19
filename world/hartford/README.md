@@ -1,5 +1,17 @@
 # Hartford-inspired city / traversal milestone
 
+## Green buffers and street life
+
+Vacant outer parcels and highway buffers now use grass instead of continuous
+concrete; the compact downtown retains paving and existing beveled sidewalks.
+`city_life.gd` deterministically adds 2,273 clustered-canopy trees, 936 slatted
+benches, 870 bins, 2,407 street lamps, 646 banners, 522 planters and 264 small
+path tiles. These are original simple meshes, batched spatially and distance
+culled. Placement checks reject road corridors, buildings and low structural
+clearances. Soft street props have no vehicle collision, preserving traversal.
+They are runtime dressing, rather than additional saved building geometry.
+This milestone does not add moving traffic, pedestrians or a day/night cycle.
+
 This is an approximate map-guided arcade city, **not a surveyed 1:1
 Hartford replica**. It replaces the previous square grid as the default scene.
 Godot units are metres. Downtown road waypoints use an approximate geographic
