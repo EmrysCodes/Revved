@@ -12,17 +12,17 @@ signal reset_to_spawn
 ## Arcade approximation of gearing/drag: acceleration falls with road speed.
 @export var power_falloff_speed: float = 27.0
 @export var steering_speed_reference: float = 32.0
-@export var cornering_acceleration: float = 13.0
-@export var handbrake_drag: float = 2.2
+@export var cornering_acceleration: float = 38.0
+@export var handbrake_drag: float = 5.5
 
 @export_group("Steering and grip")
 @export var low_speed_turn_rate: float = 2.0
 @export var high_speed_turn_rate: float = 0.85
-@export var steering_response: float = 5.0
-@export var steering_return: float = 7.5
+@export var steering_response: float = 8.0
+@export var steering_return: float = 10.0
 @export var road_grip: float = 10.0
-@export var slide_grip: float = 0.65
-@export var handbrake_turn_boost: float = 1.65
+@export var slide_grip: float = 3.0
+@export var handbrake_turn_boost: float = 1.45
 @export var align_to_slopes: bool = false
 @export var max_step_height: float = 0.32
 
@@ -80,7 +80,7 @@ func _step_motion(delta: float, throttle: float, steering: float, footbrake: boo
 	var right: Vector3 = global_basis.x
 	_speed = planar.dot(forward)
 	_handbraking = handbrake and grounded and planar.length() > 3.0
-	_drift_blend = move_toward(_drift_blend, 1.0 if _handbraking else 0.0, (12.0 if _handbraking else 1.3) * delta)
+	_drift_blend = move_toward(_drift_blend, 1.0 if _handbraking else 0.0, (12.0 if _handbraking else 3.6) * delta)
 	var response: float = steering_return if is_zero_approx(steering) else steering_response
 	_steering = move_toward(_steering, clampf(steering, -1.0, 1.0), response * delta)
 	if grounded:
@@ -104,7 +104,7 @@ func _step_motion(delta: float, throttle: float, steering: float, footbrake: boo
 		var low_speed_weight: float = clampf(absf(planar.dot(forward)) / 4.0, 0.0, 1.0)
 		var boost: float = lerpf(1.0, handbrake_turn_boost, _drift_blend)
 		var target_yaw: float = -_steering * turn_rate * low_speed_weight * travel_sign * boost
-		_yaw_rate = lerpf(_yaw_rate, target_yaw, 1.0 - exp(-10.0 * delta))
+		_yaw_rate = lerpf(_yaw_rate, target_yaw, 1.0 - exp(-16.0 * delta))
 		rotate_y(_yaw_rate * delta)
 
 		# Turn the body without snapping its world-space momentum to the new heading.

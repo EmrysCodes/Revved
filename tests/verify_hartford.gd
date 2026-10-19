@@ -31,11 +31,27 @@ func _run() -> void:
 					if problems<24:
 						print("BLOCKED ",path_index," ",point," ",block.collider.get_path()," at ",block.position)
 					problems+=1
+				if group==city.map_roads:
+					var headroom:=PhysicsRayQueryParameters3D.create(point+Vector3.UP*0.35,point+Vector3.UP*1.7)
+					headroom.exclude=[car.get_rid()]
+					var ceiling:=space.intersect_ray(headroom)
+					if not ceiling.is_empty():
+						if problems<24:
+							print("HEADROOM ",path_index," ",point," ",ceiling.collider.get_path())
+						problems+=1
 	print("ROAD PROBLEMS ",problems)
 	assert(problems==0,"Roads and ramps must have continuous clear driving corridors")
 	var panes: Array[Node]=city.get_node("Shortcuts").find_children("*","Area3D",true,false)
 	assert(panes.size()==city.get_meta("glass_locations").size()*2 and panes.size()>0,"Two fronts per glass arcade")
 	assert(city.get_meta("building_count")>1000,"Dense building infill")
+	assert(city.get_meta("kit_buildings")>1000 and city.get_meta("kit_props")>100,"Imported Quaternius architecture and street details")
+	assert(city.get_meta("flowing_routes").size()==4,"Four continuous curving neighborhood boulevards")
+	var models: Dictionary={}
+	for node in city.get_node("UrbanKit").get_children():
+		if node is MultiMeshInstance3D:
+			assert(node.get("placements").size()==node.multimesh.instance_count and node.multimesh.instance_count>0,"Saved kit placements survive headless generation")
+			models[node.multimesh.mesh.resource_path]=true
+	assert(models.size()>=5,"Shared kit building and prop meshes")
 	assert(city.get_meta("infill_routes").size()>100 and city.get_meta("alley_count")>50,"Connected neighborhood streets and alleys")
 	panes[0].call("_entered",car)
 	assert(panes[0].get("broken") and not panes[0].get_node("Pane").visible)

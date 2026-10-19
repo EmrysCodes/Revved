@@ -14,6 +14,11 @@ var infill_routes: Array = []
 var alley_count := 0
 var reserved_blocks: Array[Vector3] = []
 var plan_cache: Dictionary = {}
+var street_plans: Array = []
+var street_bounds: Array[Rect2] = []
+var kit: RefCounted
+var landmark_mode := false
+var flowing_routes: Array = []
 func ground(x: float, z: float) -> float:
 	var land := 4.0 + 16.0 * (1.0 - smoothstep(-1700, 500, x)) + 2.0 * sin(z / 750.0)
 	var river_x := 730.0 + 35.0 * sin(z / 800.0)
@@ -48,13 +53,21 @@ func _build() -> void:
 	city = Node3D.new()
 	city.name = "HartfordDistrict"
 	root.add_child(city)
-	for title in ["Terrain", "Streets", "Sidewalks", "Buildings", "Details", "Expressway", "Ramps", "Signs", "Boundaries", "Shortcuts", "Landmarks"]:
+	for title in ["Terrain", "Streets", "Sidewalks", "Buildings", "Details", "Expressway", "Ramps", "Signs", "Boundaries", "Shortcuts", "Landmarks", "UrbanKit"]:
 		group(title)
 	for entry in [["Asphalt",Color(0.105,0.115,0.13)],["Concrete",Color(0.48,0.5,0.52)],["Walk",Color(0.4,0.41,0.4)],["Grass",Color(0.22,0.3,0.2)],["White",Color(0.86,0.86,0.82)],["Yellow",Color(0.86,0.65,0.2)],["Window",Color(0.12,0.24,0.3)],["Building0",Color(0.57,0.5,0.4)],["Building1",Color(0.36,0.44,0.49)],["Building2",Color(0.43,0.28,0.23)],["Building3",Color(0.57,0.57,0.53)],["GreenSign",Color(0.025,0.16,0.1)],["Water",Color(0.10,0.29,0.34)],["Gold",Color(0.78,0.58,0.16)]]:
 		material(entry[0], entry[1])
+	kit=load("res://tools/city_kit.gd").new(city,groups.UrbanKit)
+	for key in ["Asphalt","Walk"]:
+		mats[key].albedo_color=Color(0.7,0.7,0.7) if key=="Asphalt" else Color(0.8,0.8,0.8)
+		mats[key].albedo_texture=load("res://assets/city/quaternius_downtown/textures/T_Concrete_Asphalt_BaseColor.png" if key=="Asphalt" else "res://assets/city/quaternius_downtown/textures/T_Concrete_BaseColor.png")
+		mats[key].uv1_triplanar=true
+		mats[key].uv1_world_triplanar=true
+		mats[key].uv1_scale=Vector3.ONE*0.2
 	_build_land()
 	_build_streets()
 	_build_infill_streets()
+	index_streets()
 	paint_streets()
 	for request in sidewalk_requests:
 		beveled_walk(request[0],request[1],request[2])
@@ -62,6 +75,7 @@ func _build() -> void:
 	flush_piers()
 	_build_blocks()
 	flush_rails()
+	kit.flush()
 	_batch_details()
 	store_geometry()
 	_build_scene()
@@ -70,6 +84,9 @@ func _build() -> void:
 	city.set("highway_roads", highway_map)
 	city.set("ramp_roads", ramp_map)
 	city.set_meta("building_count", building_count)
+	city.set_meta("kit_buildings", kit.count)
+	city.set_meta("kit_props", kit.props)
+	city.set_meta("flowing_routes", flowing_routes)
 	city.set_meta("infill_routes", infill_routes)
 	city.set_meta("alley_count", alley_count)
 	city.set_meta("named_routes", named_routes)
@@ -89,7 +106,10 @@ func _build() -> void:
 func _build_land() -> void:
 	var builder := SurfaceTool.new()
 	builder.begin(Mesh.PRIMITIVE_TRIANGLES)
-	builder.set_material(mats.Grass)
+	var urban:=ShaderMaterial.new()
+	urban.shader=load("res://world/hartford/urban_ground.gdshader")
+	urban.set_shader_parameter("pavement",load("res://assets/city/quaternius_downtown/textures/T_Concrete_BaseColor.png"))
+	builder.set_material(urban)
 	for x in range(-2250,2250,25):
 		for z in range(-1900,1900,25):
 			quad(builder,pos(x,z+25,-0.18),pos(x+25,z+25,-0.18),pos(x,z,-0.18),pos(x+25,z,-0.18),true)
@@ -113,11 +133,13 @@ func sampled(a: Vector3,b: Vector3) -> PackedVector3Array:
 	return output
 func local_link(label: String,a: Vector3,b: Vector3,width: float,bridge := false) -> void:
 	var points := sampled(a,b)
+	local_path(label,points,width,bridge)
+func local_path(label: String,points: PackedVector3Array,width: float,bridge:=false) -> void:
 	for i in range(points.size()):
 		var p := points[i]
 		p.y = ground(p.x,p.z)
-		if bridge and p.x > 440 and p.x < 1060:
-			var blend := smoothstep(440,620,p.x)*(1.0-smoothstep(880,1060,p.x))
+		if bridge and p.x > 440 and p.x < 980:
+			var blend := smoothstep(440,620,p.x)*(1.0-smoothstep(880,980,p.x))
 			p.y = lerpf(p.y,12.0,blend)
 		points[i] = p
 	road(label,points,width,groups.Streets,bridge)
@@ -152,8 +174,10 @@ func beveled_walk(points: PackedVector3Array,width: float,source: int) -> void:
 func _build_streets() -> void:
 	for route in layout.roads:
 		var keys: Array=route.nodes
-		for i in range(keys.size()-1):
-			local_link(route.name,node_point(keys[i]),node_point(keys[i+1]),route.width,route.get("bridge",false))
+		var anchors:=PackedVector3Array()
+		for key in keys:
+			anchors.append(node_point(key))
+		local_path(route.name,smooth_route(anchors),route.width,route.get("bridge",false))
 		var point := node_point(keys[maxi(0,keys.size()/2)])
 		label_sign(route.name,point+Vector3(14,4,0),0,groups.Signs)
 	# Several independent local approaches, not a highway-only district graph.
@@ -180,37 +204,74 @@ func _build_streets() -> void:
 	local_link("ParkCrossing",pos(-825,190),pos(-305,190),8)
 # Fictional neighborhood infill, connected to the authored arterial network.
 func _build_infill_streets() -> void:
-	# Short blocks west of downtown, south of the park, and east of the river.
 	for district in [Rect2(-1740,-650,660,1900),Rect2(-1080,520,1440,730),Rect2(-720,-620,960,500),Rect2(1010,-380,300,1320)]:
 		var xs: Array[float]=[]
 		var zs: Array[float]=[]
-		var x: float= district.position.x
+		var x: float=district.position.x
 		while x<=district.end.x:
-			xs.append(x)
-			x+=150.0
-		var z: float= district.position.y
+			xs.append(x);x+=150.0
+		var z: float=district.position.y
 		while z<=district.end.y:
-			zs.append(z)
-			z+=140.0
-		for xx in xs:
-			infill_link("NeighborhoodStreet",pos(xx,zs[0]),pos(xx,zs[-1]),12)
-		for zz in zs:
-			infill_link("NeighborhoodCrossStreet",pos(xs[0],zz),pos(xs[-1],zz),12)
-		# Mid-block lanes have two exits; keep a full 7m driving corridor.
+			zs.append(z);z+=140.0
+		var perimeter:=rounded_block(Rect2(xs[0],zs[0],xs[-1]-xs[0],zs[-1]-zs[0]),65)
+		local_path("CurvingNeighborhoodBoulevard",perimeter,16)
+		infill_routes.append(road_map[-1]);flowing_routes.append(road_map[-1])
+		for i in range(1,xs.size()-1):
+			infill_link("WindingNeighborhoodStreet",pos(xs[i],zs[0]),pos(xs[i],zs[-1]),12)
+		for j in range(1,zs.size()-1):
+			infill_link("WindingCrossStreet",pos(xs[0],zs[j]),pos(xs[-1],zs[j]),12)
 		for i in range(xs.size()-1):
 			for j in range(zs.size()-1):
 				infill_link("ServiceAlley",pos((xs[i]+xs[i+1])*0.5,zs[j]),pos((xs[i]+xs[i+1])*0.5,zs[j+1]),7)
-	# Explicit links prevent the smaller neighborhood grids becoming islands.
-	infill_link("WestInfillLink",pos(-1080,50),node_point("JewellWest"),14)
-	infill_link("SouthInfillLink",pos(-780,520),node_point("ParkTrinity"),14)
-	infill_link("SouthMainLink",pos(360,1080),node_point("ColumbusSouth"),14)
-	infill_link("EastInfillLink",pos(1010,40),node_point("EastFounders"),14)
+		# Round the four turns of each boulevard instead of ending in square corners.
+	for entry in [["WestInfillLink",pos(-1140,50),node_point("JewellWest")],["SouthInfillLink",pos(-780,520),node_point("ParkTrinity")],["SouthMainLink",pos(270,1080),node_point("ColumbusSouth")],["EastInfillLink",pos(1010,40),node_point("EastFounders")]]:
+		local_link(entry[0],neighborhood_point(entry[1]),entry[2],14)
+		infill_routes.append(road_map[-1])
+func neighborhood_point(p: Vector3) -> Vector3:
+	return pos(p.x+22*sin(p.z/210.0),p.z+18*sin(p.x/240.0))
+func rounded_block(rect: Rect2,radius: float) -> PackedVector3Array:
+	var points:=PackedVector3Array()
+	var centers: Array[Vector2]=[rect.position+Vector2(radius,radius),Vector2(rect.end.x-radius,rect.position.y+radius),rect.end-Vector2(radius,radius),Vector2(rect.position.x+radius,rect.end.y-radius)]
+	for corner in range(4):
+		var arc:=PackedVector3Array()
+		for i in range(25):
+			var angle: float=PI+corner*PI*0.5+i*PI*0.5/24
+			arc.append(pos(centers[corner].x+radius*cos(angle),centers[corner].y+radius*sin(angle)))
+		if not points.is_empty():
+			points.append_array(sampled(points[-1],arc[0]).slice(1))
+			points.append_array(arc.slice(1))
+		else:
+			points.append_array(arc)
+	points.append_array(sampled(points[-1],points[0]).slice(1))
+	for i in range(points.size()):
+		points[i]=neighborhood_point(points[i])
+	return points
+func smooth_route(anchors: PackedVector3Array) -> PackedVector3Array:
+	var out:=PackedVector3Array()
+	for i in range(anchors.size()-1):
+		var a:=anchors[i]
+		var b:=anchors[i+1]
+		var previous:=anchors[maxi(i-1,0)]
+		var following:=anchors[mini(i+2,anchors.size()-1)]
+		var handle:=minf(a.distance_to(b)*0.25,55.0)
+		var c1:=a+(b-previous).normalized()*handle
+		var c2:=b-(following-a).normalized()*handle
+		var count:=maxi(2,ceili(a.distance_to(b)/4))
+		for j in range(count):
+			var t:=float(j)/count
+			var v: Vector3=pow(1-t,3)*a+3*pow(1-t,2)*t*c1+3*(1-t)*t*t*c2+t*t*t*b
+			out.append(pos(v.x,v.z))
+	out.append(anchors[-1])
+	return out
 func infill_link(label: String,a: Vector3,b: Vector3,width: float) -> void:
 	# Reject routes through existing landmark envelopes, rather than burying buildings.
 	for landmark in [Vector3(-900,0,220),Vector3(5,0,300),Vector3(-450,0,-300),Vector3(-820,0,-220),Vector3(350,0,350),Vector3(470,0,200),Vector3(60,0,0)]:
 		if Vector2(landmark.x,landmark.z).distance_to(Geometry2D.get_closest_point_to_segment(Vector2(landmark.x,landmark.z),Vector2(a.x,a.z),Vector2(b.x,b.z)))<75:
 			return
-	local_link(label,a,b,width)
+	var points:=sampled(a,b)
+	for i in range(points.size()):
+		points[i]=neighborhood_point(points[i])
+	local_path(label,points,width)
 	infill_routes.append(road_map[-1])
 	if width<8:
 		# Alleys are unmarked and flush; intersections stay open to vehicles.
@@ -375,7 +436,7 @@ func plan_segments(path: PackedVector3Array) -> PackedVector3Array:
 		var a:=Vector2(result[-1].x,result[-1].z)
 		var b:=Vector2(path[i+1].x,path[i+1].z)
 		var p:=Vector2(path[i].x,path[i].z)
-		if p.distance_to(Geometry2D.get_closest_point_to_segment(p,a,b))>0.001:
+		if p.distance_to(Geometry2D.get_closest_point_to_segment(p,a,b))>0.05:
 			result.append(path[i])
 	result.append(path[-1])
 	plan_cache[key]=result
@@ -427,6 +488,9 @@ func _build_blocks() -> void:
 		var height: float=rng.randf_range(28,95) if central else rng.randf_range(8,25)
 		var sx:=rng.randf_range(26,46)
 		var sz:=rng.randf_range(28,48)
+		var radius:=Vector2(sx,sz).length()*0.5+1
+		if not clear_parcel(p,radius) or road_distance(p,highway_map)<radius+16 or road_distance(p,ramp_map)<radius+10:
+			continue
 		building(p.x,p.z,sx,sz,height,rng.randi_range(0,3))
 		reserved_blocks.append(Vector3(p.x,Vector2(sx,sz).length()*0.5+3,p.z))
 		if central or index%4==0:
@@ -435,15 +499,15 @@ func _build_blocks() -> void:
 	_build_landmarks()
 func _dense_frontage(landmarks: Array[Vector3]) -> void:
 	# Small parcels create shop rows, apartments and warehouses between larger masses.
-	for x in range(-1780,1430,38):
-		for z in range(-1280,1400,38):
+	for x in range(-1780,1430,30):
+		for z in range(-1280,1400,30):
 			var p:=pos(x+rng.randf_range(-2,2),z+rng.randf_range(-2,2))
 			if p.x>490 and p.x<990 or p.x> -870 and p.x< -280 and p.z>35 and p.z<340:
 				continue
 			if p.x>500 and p.z< -470 or p.x> -350 and p.x<1300 and p.z< -600:
 				continue
-			var sx:=rng.randf_range(19,28)
-			var sz:=rng.randf_range(20,29)
+			var sx:=rng.randf_range(14,23)
+			var sz:=rng.randf_range(16,25)
 			var radius:=Vector2(sx,sz).length()*0.5+1
 			var blocked:=false
 			for landmark in landmarks:
@@ -455,10 +519,7 @@ func _dense_frontage(landmarks: Array[Vector3]) -> void:
 			if blocked or road_distance(p,highway_map)<radius+16 or road_distance(p,ramp_map)<radius+10:
 				continue
 			# Width-aware clearance preserves both street and alley shoulders.
-			for i in range(road_map.size()):
-				if road_distance(p,[road_map[i]])<radius+path_widths[i]*0.5+4:
-					blocked=true
-					break
+			blocked=not clear_parcel(p,radius)
 			if blocked:
 				continue
 			var central:=p.x> -720 and p.x<450 and absf(p.z)<650
@@ -466,10 +527,8 @@ func _dense_frontage(landmarks: Array[Vector3]) -> void:
 			building(p.x,p.z,sx,sz,height,rng.randi_range(0,3))
 			# Paved service yards, ground-floor shop glazing and rooftop equipment.
 			terrain_patch("PavedParcel",p.x-sx*0.5-2,p.z-sz*0.5-2,p.x+sx*0.5+2,p.z+sz*0.5+2,"Walk",0.006,groups.Details,false)
-			box("ShopFront",p+Vector3(0,2,sz*0.5+0.04),Vector3(sx*0.72,2.8,0.08),"Window",groups.Details,false)
-			box("ShopCanopy",p+Vector3(0,3.7,sz*0.5+0.8),Vector3(sx*0.8,0.25,1.8),"Building2",groups.Details,false)
-			box("RoofEquipment",p+Vector3(0,height+1.2,0),Vector3(3,2,4),"Concrete",groups.Details,false)
 func _build_landmarks() -> void:
+	landmark_mode=true
 	# Recognizable blockout silhouettes and approximate locations; no exact facade claim.
 	building(-900,220,84,48,34,0)
 	var dome:=MeshInstance3D.new()
@@ -542,19 +601,65 @@ func _build_scene() -> void:
 	var hud: Label=city.get_node("CityHUD/Screen/Readout")
 	hud.add_theme_font_size_override("font_size",15)
 
+func index_streets() -> void:
+	for path: PackedVector3Array in road_map:
+		var plan:=plan_segments(path)
+		street_plans.append(plan)
+		var bounds:=Rect2(Vector2(plan[0].x,plan[0].z),Vector2.ZERO)
+		for point in plan:
+			bounds=bounds.expand(Vector2(point.x,point.z))
+		street_bounds.append(bounds)
 func crosses_other_street(point: Vector3,source: int) -> bool:
 	var p:=Vector2(point.x,point.z)
-	for index in range(road_map.size()):
+	for index in range(street_plans.size()):
 		if index==source:
 			continue
-		var path:=plan_segments(road_map[index])
 		var width: float=path_widths[index]*0.5+0.8
+		if not street_bounds[index].grow(width).has_point(p):
+			continue
+		var path: PackedVector3Array=street_plans[index]
 		for i in range(path.size()-1):
-			var a:=Vector2(path[i].x,path[i].z)
-			var b:=Vector2(path[i+1].x,path[i+1].z)
-			if p.distance_squared_to(Geometry2D.get_closest_point_to_segment(p,a,b))<width*width:
+			if p.distance_squared_to(Geometry2D.get_closest_point_to_segment(p,Vector2(path[i].x,path[i].z),Vector2(path[i+1].x,path[i+1].z)))<width*width:
 				return true
 	return false
+func clear_parcel(point: Vector3,radius: float) -> bool:
+	var p:=Vector2(point.x,point.z)
+	for index in range(street_plans.size()):
+		var width: float=radius+path_widths[index]*0.5+2.5
+		if not street_bounds[index].grow(width).has_point(p):
+			continue
+		var path: PackedVector3Array=street_plans[index]
+		for i in range(path.size()-1):
+			if p.distance_to(Geometry2D.get_closest_point_to_segment(p,Vector2(path[i].x,path[i].z),Vector2(path[i+1].x,path[i+1].z)))<width:
+				return false
+	return true
+func frontage_yaw(point: Vector3) -> float:
+	var p:=Vector2(point.x,point.z)
+	var best:=INF
+	var outward:=Vector2(0,1)
+	for index in range(street_plans.size()):
+		if not street_bounds[index].grow(minf(best,150)).has_point(p):
+			continue
+		var path: PackedVector3Array=street_plans[index]
+		for i in range(path.size()-1):
+			var closest:=Geometry2D.get_closest_point_to_segment(p,Vector2(path[i].x,path[i].z),Vector2(path[i+1].x,path[i+1].z))
+			if p.distance_to(closest)<best:
+				best=p.distance_to(closest);outward=closest-p
+	return atan2(outward.x,outward.y)
+func building(x: float,z: float,sx: float,sz: float,height: float,style: int) -> void:
+	if landmark_mode:
+		super.building(x,z,sx,sz,height,style)
+		return
+	building_count+=1
+	var p:=pos(x,z)
+	var yaw:=frontage_yaw(p)
+	var actual_height:=clampf(height,12,55)
+	kit.building(p,Vector3(sx,actual_height,sz),yaw,style)
+	if building_count%4==0:
+		kit.prop("Prop_ACUnit",p+Vector3(0,actual_height+0.05,0),yaw)
+	if building_count%3==0:
+		var front:=p+Basis(Vector3.UP,yaw)*Vector3(0,0,sz*0.5+1)
+		kit.prop("Prop_Planter_Single",front,yaw)
 func clover(label: String,center: Vector2,radius: float,start: float,from_y: float,to_y: float,extension:=Vector3.ZERO,approach:=Vector3.ZERO) -> void:
 	var points:=PackedVector3Array()
 	for i in range(241):
@@ -622,6 +727,8 @@ func store_geometry() -> void:
 func paint_streets() -> void:
 	for request in paint_requests:
 		var points: PackedVector3Array=request[0]
+		for i in range(8,points.size()-8,32):
+			kit.prop("Prop_ManholeCover",points[i]+Vector3.UP*0.015)
 		if request[1]<10:
 			continue
 		for i in range(points.size()-1):

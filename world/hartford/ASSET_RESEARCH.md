@@ -1,6 +1,6 @@
 # City art candidates — 18 October 2026
 
-The current scene contains authored blockout geometry. None of these packs has been downloaded or imported. Availability and pricing can change.
+The free Quaternius Standard kit is now imported under `assets/city/quaternius_downtown`: 153 glTF models and 29 shared textures, with its CC0 license. The city uses its three complete building models, AC units, planters, manholes and asphalt/concrete textures. REVVED supplies placement, simple collisions, grouped rendering and terrain-following roads. Other candidates below have not been imported. Availability and pricing can change.
 
 ## Recommended modular kit
 
@@ -24,4 +24,4 @@ The current scene contains authored blockout geometry. None of these packs has b
 
 ## Next art milestone
 
-Replace one street block near spawn with imported modular buildings, textured asphalt, sidewalks, shopfronts, signs and alley props. Review it at driving height before replacing the rest of the city. Preserve the road graph and collision tests. Another mass-only pass will not resolve the requested art improvement.
+The first integration replaces ordinary building masses with imported architecture and street materials. Further art work can expand facade variety using the remaining individual modules, add street lighting/vegetation/signage and reduce repetition. The free kit does not include the paid Source project's window shaders. Landmark silhouettes remain approximate authored geometry.

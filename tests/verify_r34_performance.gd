@@ -74,7 +74,7 @@ func _run() -> void:
 	for frame in range(20):
 		car.call("_step_motion",STEP,1.0,1.0,false,false)
 		await physics_frame
-	assert(absf(car.get("_yaw_rate"))<0.3 and car.is_on_floor(),"Controlled high-speed steering")
+	assert(absf(car.get("_yaw_rate"))<0.9 and car.is_on_floor(),"Controlled arcade high-speed steering")
 	settings.set_performance(0,0,0,false)
 	settings.set_performance_brands(0,0,0,false)
 	assert(is_equal_approx(car.top_speed,69.3) and is_equal_approx(car.acceleration,7.0),"Stock restore has no stacked tuning")

@@ -6,6 +6,10 @@ The S64 visual remains a fictional compact. This tune approximates R34 GT-R perf
 
 Stock tune: 69.3m/s top speed, 7m/s² launch acceleration, power taper a(v)=7/(1+(v/27)²), and 10.5m/s² braking. Steering uses a fixed speed reference and a cornering-acceleration cap, so raising the engine speed ceiling does not sharpen steering at the same speed. Handbrake sliding remains arcade-based.
 
+The city cleanup increases the arcade cornering cap from 13 to 38m/s², speeds steering response/return to 8/10, and raises slide grip from 0.65 to 3.0. Handbrake yaw boost is 1.45; handbrake drag is 5.5m/s². Drift blend clears at 3.6 per second, allowing a quick catch when released. These deliberately exceed road-car cornering realism to support tighter arcade racing. Straight-line performance below remains unchanged.
+
+`tests/verify_high_speed_control.gd` checks 80/120/150 MPH normal and handbrake turns. At 150 MPH, one second at full steering gives approximately 29 degrees of heading change normally and 45 with the handbrake, a bounded 16-degree drift angle, and recovery within 0.6 seconds after release.
+
 Measured on a flat surface at 60 physics steps per second:
 
 | Engine tier | Balanced 0–60 / top | Launch brand 0–60 / top | Speed brand 0–60 / top |

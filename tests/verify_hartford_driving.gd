@@ -1,4 +1,6 @@
 extends SceneTree
+var drive_speed := 18.0
+var drive_failed := false
 func _initialize() -> void:
 	call_deferred("_run")
 func drive(car: CharacterBody3D,path: PackedVector3Array,label: String) -> void:
@@ -10,14 +12,14 @@ func drive(car: CharacterBody3D,path: PackedVector3Array,label: String) -> void:
 	for frame in range(18):
 		car.call("_step_motion",1.0/60,0.0,0.0,false,false)
 		await physics_frame
-	car.top_speed=18
+	car.top_speed=drive_speed
 	var target:=1
 	var length:=0.0
 	for i in range(path.size()-1):
 		length+=path[i].distance_to(path[i+1])
 	var finished:=false
 	var air:=0
-	for frame in range(ceili(length/18*60)+600):
+	for frame in range(ceili(length/drive_speed*60)+600):
 		while target<path.size()-1 and Vector2(car.position.x-path[target].x,car.position.z-path[target].z).length()<12:
 			target+=1
 		var desired: Vector3=path[target]-car.position
@@ -31,8 +33,11 @@ func drive(car: CharacterBody3D,path: PackedVector3Array,label: String) -> void:
 			air+=1
 		await physics_frame
 	print("DRIVE ",label," finished ",finished," air ",air," position ",car.position)
-	assert(finished,"Drive entire authored connector")
-	assert(air<100,"No extended falling or ramp clipping")
+	if not finished or air>=100:
+		drive_failed=true
+		push_error("Driving route failed: "+label)
+		quit(1)
+		return
 func _run() -> void:
 	var city: Node3D=load("res://scenes/hartford_district.tscn").instantiate()
 	root.add_child(city)
