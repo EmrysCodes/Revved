@@ -76,7 +76,7 @@ func _run() -> void:
 	check(late_rival.finished and event.finish_times.has(late_rival.get_instance_id()),"Late rival finishes and refreshes results")
 	check(event.player_place()==2,"Late finish does not change player's finishing place")
 	var saved:=ConfigFile.new();check(saved.load(event.best_path)==OK,"Best-time file exists")
-	check(is_equal_approx(saved.get_value("capital_run_v1","best_seconds"),event.best_time),"Saved best matches result")
+	check(is_equal_approx(saved.get_value(event.best_key(),"best_seconds"),event.best_time),"Saved best matches result")
 	for resolution in [Vector2i(640,360),Vector2i(1280,720),Vector2i(2560,1080)]:
 		root.size=resolution
 		for i in range(4): await process_frame
@@ -86,7 +86,7 @@ func _run() -> void:
 	check(event.state==event.Phase.COUNTDOWN and event.elapsed==0 and event.opponents.size()==3,"Results retry resets event and rivals")
 	menu.open_menu();menu.get_node("Overlay/Center/Card/Padding/Stack/LeaveCityRace").pressed.emit()
 	check(not paused and event.state==event.Phase.FREE_ROAM and event.opponents.is_empty(),"Pause menu can return to free roam")
-	check(not car.controls_locked and car.collision_mask==1 and city.get_node("CityHUD").visible,"Free-roam controls/collision/HUD restored")
+	check(not car.controls_locked and car.collision_mask==5 and city.get_node("CityHUD").visible,"Free-roam controls/collision/HUD restored")
 	check(car.global_transform.is_equal_approx(original),"Return to pre-race location")
 	DirAccess.remove_absolute(event.best_path)
 	print("PASS: race entry, countdown, camera, pause, ordered/directional/height gates, recovery, AI/player results, ranking, best persistence, retry, layouts and free-roam restoration")

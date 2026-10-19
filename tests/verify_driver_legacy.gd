@@ -35,8 +35,9 @@ func run() -> void:
 	creator.queue_free();await process_frame
 	var hub: Control=load("res://ui/legacy/legacy_hub.tscn").instantiate();root.add_child(hub)
 	for i in range(4): await process_frame
-	check(hub.map.markers.size()==5 and not hub.start.disabled,"City map contains event markers and playable sprint")
-	hub.select_event(1);check(hub.start.disabled,"Future event cannot launch")
+	check(hub.map.markers.size()==18 and not hub.start.disabled,"City map contains event markers and playable sprint")
+	hub.select_event(9);check(hub.start.disabled,"Eastside requires downtown final")
+	hub.select_event(1);check(not hub.start.disabled,"Opening downtown events are playable")
 	hub.select_event(0);hub.map.zoom=2;hub.map.pan=Vector2(20,30);hub.map.refresh();hub.map.reset_view()
 	check(hub.map.zoom==1 and hub.map.pan==Vector2.ZERO,"Map reset restores pan and zoom")
 	for resolution in [Vector2i(640,360),Vector2i(1280,720),Vector2i(2560,1080)]:

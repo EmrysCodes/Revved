@@ -40,11 +40,11 @@ func apply_saved_style() -> void:
 					vinyl.set_shader_parameter("base_color",STYLE.PAINT_COLORS[GameSettings.car_paint])
 					vinyl.set_shader_parameter("vinyl_color",STYLE.VINYL_COLORS[GameSettings.car_vinyl_color])
 					vinyl.set_shader_parameter("vinyl_style",GameSettings.car_vinyl)
-					vinyl.set_shader_parameter("base_metallic",.5);vinyl.set_shader_parameter("base_roughness",.28)
+					vinyl.set_shader_parameter("base_metallic",.35);vinyl.set_shader_parameter("base_roughness",.4)
 					vinyl.set_shader_parameter("mesh_to_car",global_transform.affine_inverse()*mesh.global_transform)
 					mesh.set_surface_override_material(surface,vinyl)
 				else:
-					var paint:StandardMaterial3D=source.duplicate();paint.cull_mode=BaseMaterial3D.CULL_DISABLED;paint.albedo_color=STYLE.PAINT_COLORS[GameSettings.car_paint]
+					var paint:StandardMaterial3D=source.duplicate();paint.cull_mode=BaseMaterial3D.CULL_DISABLED;paint.albedo_color=STYLE.PAINT_COLORS[GameSettings.car_paint];paint.roughness=.4;paint.metallic=.35
 					mesh.set_surface_override_material(surface,paint)
 			elif source.resource_name.begins_with("Rim") and GameSettings.car_wheels>=2:
 				var dark:StandardMaterial3D=source.duplicate();dark.albedo_color=Color(.035,.04,.05);mesh.set_surface_override_material(surface,dark)

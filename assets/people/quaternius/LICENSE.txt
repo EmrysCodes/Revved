@@ -1,0 +1,9 @@
+Ultimate Modular Men Pack by Quaternius
+
+The original pack page explicitly licenses these assets under CC0 1.0 Universal.
+Source: https://quaternius.com/packs/ultimatemodularcharacters.html
+CC0 dedication: https://creativecommons.org/publicdomain/zero/1.0/
+
+Five supplied glTF characters used: Casual_2, Casual_Hoodie, Suit, Worker, Punk.
+Downloaded from the creator-linked public Google Drive folder on 2026-10-19.
+No paid source-kit content is included.

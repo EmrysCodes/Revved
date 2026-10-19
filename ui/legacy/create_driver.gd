@@ -10,6 +10,7 @@ var error_label: Label
 var name_input: LineEdit
 var portrait_set: OptionButton
 func _ready() -> void:
+	preload("res://ui/racing_theme.gd").apply(self)
 	var bg:=ColorRect.new();add_child(bg);bg.color=Color("101b25");bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var margin:=MarginContainer.new();add_child(margin);margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left","right","top","bottom"]: margin.add_theme_constant_override("margin_"+side,24)

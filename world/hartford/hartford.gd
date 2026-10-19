@@ -4,10 +4,14 @@ extends "res://world/downtown.gd"
 @export var map_title := "HARTFORD / N"
 func _ready() -> void:
 	super._ready()
+	if get_meta("offline_build",false):return
 	car.get_node("CameraArm/FollowCamera").far = 5000
 	car.reset_to_spawn.connect(_restore_glass)
+	if ResourceLoader.exists("res://world/eastside/frontage.tscn"):
+		add_child(load("res://world/eastside/frontage.tscn").instantiate())
 	call_deferred("_add_city_life")
 	call_deferred("_add_ambience")
+	call_deferred("_add_population")
 	if FileAccess.file_exists("res://racing/capital_run_route.json"):
 		call_deferred("_add_city_race")
 func _add_city_race() -> void:
@@ -24,6 +28,10 @@ func _add_city_life() -> void:
 func _add_ambience() -> void:
 	var ambience:=Node3D.new();ambience.name="CityAmbience"
 	ambience.set_script(load("res://audio/city_ambience.gd"));add_child(ambience)
+func _add_population() -> void:
+	if get_meta("disable_population",false):return
+	for entry in [["CityTraffic","res://world/city_traffic.gd"],["CityPedestrians","res://world/city_pedestrians.gd"]]:
+		var population:=Node3D.new();population.name=entry[0];population.set_script(load(entry[1]));add_child(population)
 func _restore_glass() -> void:
 	for pane in $Shortcuts.find_children("*","Area3D",true,false):
 		pane.restore()
@@ -36,7 +44,7 @@ func _update_readout() -> void:
 	if car.position.x < -850:
 		district = "ASYLUM HILL / FROG HOLLOW"
 	elif car.position.x > 950:
-		district = "EAST RIVER / EAST HARTFORD"
+		district = "EASTSIDE / FOUNDERS DISTRICT"
 	elif car.position.z > 550:
 		district = "SHELDON / SOUTH END"
 	elif car.position.z < -700:

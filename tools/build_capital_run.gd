@@ -158,8 +158,10 @@ func _run() -> void:
 		distances.append(distances[-1]+course[i-1].distance_to(course[i]))
 	var serialized: Array=[]
 	for p in course: serialized.append([p.x,p.y,p.z])
+	gates=Array(preload("res://racing/route_guidance.gd").safe_checkpoints(course,PackedFloat64Array(distances),finish_index))
 	var data:={"version":1,"name":"CAPITAL RUN","points":serialized,"distances":distances,"checkpoints":gates,"sections":sections,"finish_index":finish_index,"length":distances[finish_index]}
+	data=preload("res://racing/course_smoothing.gd").refine_data(data)
 	var file:=FileAccess.open("res://racing/capital_run_route.json",FileAccess.WRITE)
 	file.store_string(JSON.stringify(data));file.close()
-	print("PASS: Capital Run route ",distances[finish_index],"m, ",course.size()," samples, ",gates.size()," ordered checkpoints")
+	print("PASS: Capital Run route ",data.length,"m, ",data.points.size()," samples, ",data.checkpoints.size()," ordered checkpoints")
 	quit()

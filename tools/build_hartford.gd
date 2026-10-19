@@ -19,6 +19,7 @@ var street_bounds: Array[Rect2] = []
 var kit: RefCounted
 var landmark_mode := false
 var flowing_routes: Array = []
+var eastside:RefCounted
 func ground(x: float, z: float) -> float:
 	var land := 4.0 + 16.0 * (1.0 - smoothstep(-1700, 500, x)) + 2.0 * sin(z / 750.0)
 	var river_x := 730.0 + 35.0 * sin(z / 800.0)
@@ -64,6 +65,7 @@ func _build() -> void:
 		mats[key].uv1_triplanar=true
 		mats[key].uv1_world_triplanar=true
 		mats[key].uv1_scale=Vector3.ONE*0.2
+	eastside=load("res://world/eastside/district_builder.gd").new(self)
 	_build_land()
 	_build_streets()
 	_build_infill_streets()
@@ -202,6 +204,7 @@ func _build_streets() -> void:
 	local_link("ParkNorthApproach",node_point("TrumbullJewell"),pos(-305,190),12)
 	local_link("ParkWestApproach",node_point("TrinityElm"),pos(-825,190),12)
 	local_link("ParkCrossing",pos(-825,190),pos(-305,190),8)
+	eastside.roads()
 # Fictional neighborhood infill, connected to the authored arterial network.
 func _build_infill_streets() -> void:
 	for district in [Rect2(-1740,-650,660,1900),Rect2(-1080,520,1440,730),Rect2(-720,-620,960,500),Rect2(1010,-380,300,1320)]:
@@ -497,6 +500,7 @@ func _build_blocks() -> void:
 		if central or index%4==0:
 			terrain_patch("DriveableForecourt",p.x-33,p.z-34,p.x+33,p.z+34,"Walk",0.008,groups.Details)
 	_dense_frontage(landmarks)
+	eastside.lots()
 	_build_landmarks()
 func _dense_frontage(landmarks: Array[Vector3]) -> void:
 	# Small parcels create shop rows, apartments and warehouses between larger masses.

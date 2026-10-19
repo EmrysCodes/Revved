@@ -5,6 +5,13 @@ enum Phase { FREE_ROAM, COUNTDOWN, RUNNING, RESULTS }
 const DATA_PATH:="res://racing/capital_run_route.json"
 const CAR_SCENE:=preload("res://vehicles/arcade_car.tscn")
 const RIVAL_SCRIPT:=preload("res://racing/rival_driver.gd")
+var route_version:=1
+var event_id:="capital_run"
+var event_title:="CAPITAL RUN"
+var event_kind:="Street sprint"
+var rival_count:=3
+var lap_count:=1
+var target_time:=0.0
 var state: Phase=Phase.FREE_ROAM
 var route:=PackedVector3Array()
 var distances:=PackedFloat64Array()
@@ -39,19 +46,29 @@ var city: Node3D
 @onready var hud: CanvasLayer=$HUD
 func _ready() -> void:
 	city=get_parent();player=city.car
-	var data: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(DATA_PATH))
+	event_id=StreetProfile.selected_event
+	var catalog=preload("res://core/career_catalog.gd")
+	var definition:Dictionary=catalog.event(event_id)
+	var route_file:String=catalog.route_path(event_id)
+	if not FileAccess.file_exists(route_file):event_id="capital_run";definition=catalog.event(event_id);route_file=DATA_PATH
+	event_title=definition.name.to_upper();event_kind=definition.kind;rival_count=definition.rivals;lap_count=definition.laps
+	var data: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(route_file))
+	route_version=int(data.get("version",1))
+	target_time=float(data.get("target_seconds",0)) if rival_count==0 else 0.0
+	hud.event_title=event_title;hud.event_kind=event_kind;hud.driver_count=rival_count+1;hud.target_time=target_time
 	for point in data.points: route.append(Vector3(point[0],point[1],point[2]))
 	distances=PackedFloat64Array(data.distances)
 	checkpoint_indices=PackedInt32Array(data.checkpoints)
 	sections=data.sections;length=data.length;finish_index=data.finish_index
-	entry_position=player.global_position
+	entry_position=route[0] if event_id!="capital_run" else player.global_position
 	saved_roam_transform=player.global_transform;saved_collision_mask=player.collision_mask
 	var config:=ConfigFile.new()
 	if config.load(best_path)==OK:
-		var value: Variant=config.get_value("capital_run_v1","best_seconds",INF)
+		var value: Variant=config.get_value(best_key(),"best_seconds",INF)
 		if (value is float or value is int) and value>0 and is_finite(float(value)):
 			best_time=float(value);best_saved=true
 	_build_markers()
+	hud.bind_navigation(self)
 	player.reset_to_spawn.connect(_on_player_reset)
 	hud.retry_pressed.connect(func():start_race(true))
 	hud.roam_pressed.connect(exit_to_free_roam)
@@ -73,6 +90,8 @@ func _unhandled_key_input(input: InputEvent) -> void:
 func _set_state(value: Phase) -> void:
 	state=value
 	city.get_node("CityHUD/Screen/Readout").visible=state==Phase.FREE_ROAM
+	var traffic:Node=city.get_node_or_null("CityTraffic")
+	if traffic:traffic.reserve_race_junctions(self)
 	state_changed.emit()
 func start_race(retry:=false) -> void:
 	if get_tree().paused: return
@@ -85,16 +104,17 @@ func start_race(retry:=false) -> void:
 	player.controls_locked=true;player.collision_mask=saved_collision_mask|2
 	place_car(player,0,-2.2)
 	_register(player)
-	var names: Array[String]=["MARA","JAX","NOVA"]
+	var names: Array=["MARA","JAX","NOVA"] if definition_chapter()==0 else ["INEZ","LUCA","REY"]
 	var colors: Array[Color]=[Color(0.7,0.02,0.025),Color(0.95,0.56,0.015),Color(0.8,0.84,0.88)]
-	for i in range(3):
+	for i in range(rival_count):
 		var rival: CharacterBody3D=CAR_SCENE.instantiate()
 		rival.set_script(RIVAL_SCRIPT)
 		rival.name=names[i];rival.event=self;rival.rival_name=names[i];rival.rival_color=colors[i]
 		rival.is_player=false
-		rival.cruise_speed=[40.0,42.0,39.0][i]
+		rival.get_node("Visuals/S64Compact").vehicle_override=1+(i+definition_chapter()*4)%10 if preload("res://vehicles/vehicle_catalog.gd").available(1) else 0
+		rival.cruise_speed=30.0+float(preload("res://core/career_catalog.gd").event(event_id).tier)*3+float(i)
 		rival.lane_offset=[2.2,-2.2,0.0][i]
-		rival.collision_layer=2;rival.collision_mask=3
+		rival.collision_layer=2;rival.collision_mask=7
 		rival.align_to_slopes=true;rival.floor_snap_length=0.6;rival.floor_constant_speed=true
 		add_child(rival);opponents.append(rival)
 		place_car(rival,[2,4,6][i],rival.lane_offset)
@@ -112,6 +132,7 @@ func place_car(driver: CharacterBody3D,index: int,side:=0.0) -> void:
 	direction.y=0;direction=direction.normalized()
 	var transform:=Transform3D(Basis(Vector3.UP,atan2(-direction.x,-direction.z)),route[index]+direction.cross(Vector3.UP)*side+Vector3.UP*0.25)
 	driver.global_transform=transform;driver.velocity=Vector3.ZERO
+	for key in ["blocked_frames","escape_frames","pass_hold","vehicle_contact_age"]:driver.set_meta(key,0)
 	driver.set("_steering",0.0);driver.set("_yaw_rate",0.0);driver.set("_drift_blend",0.0)
 	driver.get_node("Visuals").rotation=Vector3.ZERO
 	driver.call("_snap_camera");driver.reset_physics_interpolation()
@@ -131,7 +152,7 @@ func _physics_process(delta: float) -> void:
 		go_remaining=maxf(0,go_remaining-delta)
 		for driver in opponents: _check_driver(driver,delta)
 		_check_driver(player,delta)
-	elif state==Phase.RESULTS and finish_times.size()<4:
+	elif state==Phase.RESULTS and finish_times.size()<rival_count+1:
 		elapsed+=delta
 		for driver in opponents: _check_driver(driver,delta)
 	ui_timer+=delta
@@ -196,12 +217,14 @@ func _on_player_reset() -> void:
 	recovery_remaining=2.0;player_recoveries+=1
 func _finish_player() -> void:
 	player.controls_locked=true;player.velocity=Vector3.ZERO
-	StreetProfile.record_finish(player_place(),player_recoveries)
 	var time: float=finish_times[player.get_instance_id()]
+	var success:bool=target_time<=0 or time<=target_time
+	StreetProfile.record_finish(player_place() if success else 4,player_recoveries,event_id,time,success,route_version)
+	hud.result_message="TARGET BEATEN" if target_time>0 and success else ("TARGET MISSED / TRY AGAIN" if target_time>0 else "")
 	if time<best_time:
 		best_time=time
 		var config:=ConfigFile.new();config.load(best_path)
-		config.set_value("capital_run_v1","best_seconds",best_time)
+		config.set_value(best_key(),"best_seconds",best_time)
 		best_saved=config.save(best_path)==OK
 	_set_state(Phase.RESULTS);_refresh_markers();_show_results()
 func _show_results() -> void:
@@ -252,24 +275,32 @@ func _update_ui() -> void:
 	if _project_progress(player)>35: instruction="OFF ROUTE — R to recover"
 	elif player.velocity.length()>4 and player.velocity.dot(desired.normalized())< -2: instruction="WRONG WAY — R to recover"
 	else: instruction+="  •  "+GameSettings.format_distance(desired.length(),true)
-	hud.racing("%d / 4"%player_place(),time_text(elapsed),"CP %d / %d"%[target+1,checkpoint_indices.size()],_section_at(index),instruction)
+	hud.racing("%d / %d"%[player_place(),rival_count+1],time_text(elapsed),"CP %d / %d"%[target+1,checkpoint_indices.size()],("TARGET "+time_text(target_time) if target_time>0 else _section_at(index)),instruction)
 	hud.center_text(str(maxi(1,ceili(countdown_remaining))) if state==Phase.COUNTDOWN else ("RECOVERING" if recovery_remaining>0 else ("GO!" if go_remaining>0 else "")))
 	_refresh_markers()
+func definition_chapter() -> int:return preload("res://core/career_catalog.gd").event(event_id).chapter
+func route_index_at_distance(value:float) -> int:
+	var low:=0;var high:=finish_index
+	while low<high:
+		var middle:int=(low+high+1)/2
+		if distances[middle]<=value:low=middle
+		else:high=middle-1
+	return low
 func time_text(seconds: float) -> String:
 	var hundredths:=int(maxf(seconds,0)*100)
 	return "%02d:%02d.%02d"%[hundredths/6000,(hundredths/100)%60,hundredths%100]
 func _build_markers() -> void:
 	gate_material=StandardMaterial3D.new()
-	gate_material.albedo_color=Color(0.15,0.95,0.65)
+	gate_material.albedo_color=Color("ffd45a")
 	gate_material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
 	gate_material.cull_mode=BaseMaterial3D.CULL_DISABLED
-	gate_material.emission_enabled=true;gate_material.emission=Color(0.08,0.6,0.3)
+	gate_material.emission_enabled=true;gate_material.emission=Color("bb8630")
 	for index in checkpoint_indices:
 		var gate:=_gate(route[index],index==finish_index)
 		gates.append(gate)
 	entry_marker=_gate(entry_position,true)
 	var title:=Label3D.new();entry_marker.add_child(title)
-	title.text="CAPITAL RUN\nE — ENTER";title.position.y=6;title.font_size=48;title.pixel_size=0.012
+	title.text=event_title+"\nE — ENTER";title.position.y=6;title.font_size=48;title.pixel_size=0.012
 	title.billboard=BaseMaterial3D.BILLBOARD_ENABLED
 	var arrow:=ArrayMesh.new()
 	var tool:=SurfaceTool.new();tool.begin(Mesh.PRIMITIVE_TRIANGLES);tool.set_material(gate_material)
@@ -309,3 +340,5 @@ func _refresh_markers() -> void:
 	var index:=0 if target==0 else checkpoint_indices[mini(target-1,checkpoint_indices.size()-1)]
 	for arrow in breadcrumbs:
 		arrow[0].visible=state in [Phase.COUNTDOWN,Phase.RUNNING] and arrow[1]>=index and distances[arrow[1]]<progress.get(player.get_instance_id(),0)+350
+
+func best_key() -> String:return event_id+"_v%d"%route_version

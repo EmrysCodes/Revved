@@ -1,6 +1,7 @@
 extends Node3D
 ## Visual steering and rolling are independent of the car's collision body.
 
+@export var vehicle_override:int=-1
 @export var wheel_radius: float = 0.292335
 @export var maximum_steer_degrees: float = 30.0
 
@@ -31,7 +32,8 @@ func _ready() -> void:
 
 func apply_saved_style() -> void:
 	var catalog=preload("res://vehicles/vehicle_catalog.gd")
-	var choice:int=GameSettings.vehicle_id if catalog.available(GameSettings.vehicle_id) else 0
+	var requested:int=vehicle_override if vehicle_override>=0 else GameSettings.vehicle_id
+	var choice:int=requested if catalog.available(requested) else 0
 	if choice!=_active_vehicle:
 		if is_instance_valid(_licensed_model):
 			remove_child(_licensed_model);_licensed_model.queue_free()

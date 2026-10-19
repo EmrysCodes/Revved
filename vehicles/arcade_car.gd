@@ -47,6 +47,7 @@ var _touch_controls: Control
 
 
 func _ready() -> void:
+	collision_mask|=4
 	_spawn_transform = global_transform
 	_stock_stats = {"top_speed": top_speed, "acceleration": acceleration, "braking": braking, "grip": road_grip}
 	_apply_performance()

@@ -2,6 +2,11 @@ extends Node
 ## Local career and launch intent; online modes will use this same profile later.
 var path:="user://street_legacy.cfg"
 var launch_mode:="free"
+const CAMPAIGN=preload("res://core/career_catalog.gd")
+var selected_event:="capital_run"
+var event_results:Dictionary={}
+var credits:=5000
+var purchased_tiers:Array[int]=[0,0,0]
 var career_finishes:=0
 var career_wins:=0
 var reputation:=0
@@ -22,6 +27,15 @@ var return_to_legacy:=false
 func _ready() -> void:
 	var file:=ConfigFile.new()
 	if file.load(path)==OK:
+		selected_event=str(file.get_value("career","selected_event","capital_run"))
+		credits=maxi(0,int(file.get_value("career","credits",5000)))
+		var saved_results:Variant=file.get_value("career","events",{})
+		if saved_results is Dictionary:
+			for item in CAMPAIGN.EVENTS:
+				var data:Variant=saved_results.get(item.id,{})
+				if data is Dictionary:
+					event_results[item.id]={"wins":maxi(0,int(data.get("wins",0))),"attempts":maxi(0,int(data.get("attempts",0))),"best":maxf(0,float(data.get("best",0))),"place":clampi(int(data.get("place",4)),1,4),"route_version":maxi(1,int(data.get("route_version",1)))}
+		for i in range(3):purchased_tiers[i]=clampi(int(file.get_value("garage","owned_tier_%d"%i,[GameSettings.engine_level,GameSettings.brakes_level,GameSettings.tires_level][i])),0,3)
 		career_finishes=maxi(0,int(file.get_value("career","finishes",0)))
 		career_wins=maxi(0,int(file.get_value("career","wins",0)))
 		reputation=maxi(0,int(file.get_value("career","reputation",0)))
@@ -40,6 +54,10 @@ func _ready() -> void:
 	apply_display()
 func save() -> Error:
 	var file:=ConfigFile.new()
+	file.set_value("career","selected_event",selected_event)
+	file.set_value("career","events",event_results)
+	file.set_value("career","credits",credits)
+	for i in range(3):file.set_value("garage","owned_tier_%d"%i,purchased_tiers[i])
 	file.set_value("career","finishes",career_finishes)
 	file.set_value("career","wins",career_wins)
 	file.set_value("career","reputation",reputation)
@@ -77,7 +95,7 @@ func apply_audio() -> void:
 	if ambience_bus>=0:
 		AudioServer.set_bus_volume_db(ambience_bus,linear_to_db(maxf(ambience_volume,0.0001)))
 		AudioServer.set_bus_mute(ambience_bus,ambience_volume<=0)
-func record_finish(place: int,recoveries:=0) -> void:
+func record_finish(place: int,recoveries:=0,event_id:="",seconds:=0.0,successful:=true,route_version:=1) -> void:
 	if launch_mode!="career": return
 	career_finishes+=1
 	if place==1: career_wins+=1
@@ -85,10 +103,49 @@ func record_finish(place: int,recoveries:=0) -> void:
 	var earned:=roundi(base*IDENTITY.multiplier(driver_background,place,recoveries))
 	reputation+=earned
 	last_award="+%d reputation • Street Legacy"%earned
+	if not event_id.is_empty():
+		var item:Dictionary=CAMPAIGN.event(event_id)
+		var result:Dictionary=event_results.get(event_id,{"wins":0,"attempts":0,"best":0.0,"place":4})
+		var first_win:bool=int(result.wins)==0 and place==1 and successful
+		if int(result.get("route_version",1))!=route_version:result.best=0.0
+		result.route_version=route_version
+		result.attempts=int(result.attempts)+1
+		if place==1 and successful:result.wins=int(result.wins)+1
+		result.place=mini(int(result.place),place)
+		if seconds>0 and (float(result.best)<=0 or seconds<float(result.best)):result.best=seconds
+		event_results[event_id]=result
+		var payout:int=roundi(float(item.cash)*(1.0 if first_win else (.35 if successful and place==1 else .12)))
+		credits+=payout
+		last_award+="\n+%s CR%s"%[str(payout)," / FIRST WIN" if first_win else ""]
+		if first_win and event_id=="capitol_crown":last_award+="\nEASTSIDE / FOUNDERS UNLOCKED"
+		if first_win and event_id=="eastside_crown":last_award+="\nTWO DISTRICTS / YOUR LEGACY CONTINUES"
 	if driver_background!=0: last_award+="\n"+IDENTITY.BACKGROUNDS[driver_background].name
 	if save()!=OK: last_award+=" • save failed; session only"
+func select_event(id:String) -> bool:
+	var item:Dictionary=CAMPAIGN.event(id)
+	if item.id!=id:return false
+	selected_event=id;return true
+func upgrade_price(slot:int,tier:int) -> int:
+	if tier<=purchased_tiers[slot]:return 0
+	return [[0,1200,4000,10000],[0,700,2200,6500],[0,900,2800,8000]][slot][tier]
+func buy_upgrade(slot:int,tier:int) -> Error:
+	if slot not in range(3) or tier not in range(4):return ERR_INVALID_PARAMETER
+	var price:=upgrade_price(slot,tier)
+	if credits<price:return ERR_UNAVAILABLE
+	var old_credits:=credits;var old_tier:=purchased_tiers[slot]
+	credits-=price;purchased_tiers[slot]=maxi(purchased_tiers[slot],tier)
+	var error:=save()
+	if error!=OK:credits=old_credits;purchased_tiers[slot]=old_tier
+	return error
+func launch_event(id:String,mode:="career") -> void:
+	if not select_event(id):return
+	if mode=="career" and not CAMPAIGN.unlock_reason(id,event_results).is_empty():return
+	launch(mode)
 func launch(mode: String) -> void:
 	launch_mode=mode;last_award=""
+	if mode in ["career","legacy_roam","garage"] and driver_created:
+		GameSettings.set_performance(mini(GameSettings.engine_level,purchased_tiers[0]),mini(GameSettings.brakes_level,purchased_tiers[1]),mini(GameSettings.tires_level,purchased_tiers[2]),false)
+	save()
 	get_tree().change_scene_to_file("res://scenes/hartford_district.tscn")
 func main_menu() -> void:
 	return_to_legacy=launch_mode in ["career","legacy_roam","garage"] and driver_created

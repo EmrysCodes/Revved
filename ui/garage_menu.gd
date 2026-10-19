@@ -32,6 +32,7 @@ var _orbit_distance: float = 7.6
 
 
 func _ready() -> void:
+	preload("res://ui/racing_theme.gd").apply(self)
 	var hood_label:=Label.new();hood_label.name="HoodLabel";hood_label.text="Hood";get_node(ROWS).add_child(hood_label)
 	get_node(ROWS).move_child(hood_label,4)
 	var hood:=OptionButton.new();hood.name="Hood";get_node(ROWS).add_child(hood);get_node(ROWS).move_child(hood,5)
@@ -114,6 +115,7 @@ func open_garage() -> void:
 	get_node(ROWS + "/SpoilerFinish").select(GameSettings.spoiler_finish)
 	get_node(ROWS + "/SpoilerFinish").disabled = GameSettings.car_spoiler == 0
 	_refresh_brands()
+	_refresh_prices()
 	_feedback.text = "Changes apply immediately and save automatically."
 	_model.rotation = Vector3.ZERO
 	_orbit_pitch = 0.28
@@ -132,7 +134,7 @@ func _show_section(section: int) -> void:
 		for control_name in SECTION_CONTROLS[index]:
 			get_node(ROWS + "/" + control_name).visible = index == section
 	get_node(ROWS + "/Description").text = [
-		"Pick a level, then a brand. All parts are unlocked for testing.",
+		("Spend earned CR on a level; its three balanced brands are included." if _career_garage() else "Practice garage / all performance parts available for testing."),
 		"Mix body parts, wheels and spoilers. Scroll for more options.",
 		"Choose paint and preset vinyl graphics."
 	][section]
@@ -187,10 +189,32 @@ func _on_vinyl_choice(_index: int) -> void:
 	_show_save_result(GameSettings.set_vinyl(_vinyl.selected, _vinyl_color.selected))
 
 
+func _career_garage() -> bool:
+	return StreetProfile.driver_created and StreetProfile.launch_mode in ["garage","career","legacy_roam"]
+
+func _refresh_prices() -> void:
+	for slot in range(3):
+		var selector:OptionButton=[_engine,_brakes,_tires][slot]
+		for tier in range(4):
+			var price:int=StreetProfile.upgrade_price(slot,tier) if _career_garage() else 0
+			selector.set_item_text(tier,["Stock","Street","Sport","Race"][tier]+(" / %d CR"%price if price>0 else " / OWNED" if _career_garage() else ""))
+
 func _on_performance_choice(_index: int) -> void:
-	_show_save_result(GameSettings.set_performance(_engine.selected, _brakes.selected, _tires.selected))
-	_refresh_brands()
-	_refresh_summary()
+	var selectors:Array=[_engine,_brakes,_tires]
+	var before:Array=[GameSettings.engine_level,GameSettings.brakes_level,GameSettings.tires_level]
+	var feedback:="Selection saved."
+	if _career_garage():
+		for slot in range(3):
+			if selectors[slot].selected==before[slot]:continue
+			var price:int=StreetProfile.upgrade_price(slot,selectors[slot].selected)
+			var result:Error=StreetProfile.buy_upgrade(slot,selectors[slot].selected)
+			if result!=OK:
+				selectors[slot].select(before[slot])
+				feedback="Not enough credits." if result==ERR_UNAVAILABLE else "Could not save purchase. Balance unchanged."
+			else:feedback="Upgrade purchased / %d CR. All brands at this level are included."%price if price>0 else "Owned part equipped."
+	var saved:Error=GameSettings.set_performance(_engine.selected,_brakes.selected,_tires.selected)
+	_refresh_brands();_refresh_prices();_refresh_summary()
+	_feedback.text=feedback if saved==OK else feedback+" Preferences save failed."
 
 
 func _on_brand_choice(_index: int) -> void:
@@ -215,7 +239,10 @@ func _show_save_result(result: Error) -> void:
 func _refresh_summary() -> void:
 	var car: CharacterBody3D = get_parent().get_parent()
 	var upgrades: Dictionary = GameSettings.performance_multipliers()
+	_refresh_prices()
 	_stats.text = "TOP SPEED LIMIT  %s\nAcceleration %+.0f%%   Braking %+.0f%%   Grip %+.0f%%\nDrag to rotate / tilt. Scroll to zoom." % [GameSettings.format_speed(car.top_speed), (upgrades.acceleration - 1.0) * 100.0, (upgrades.braking - 1.0) * 100.0, (upgrades.grip - 1.0) * 100.0]
+
+	if _career_garage():_stats.text="BALANCE %d CR\n"%StreetProfile.credits+_stats.text
 
 
 func _on_preview_input(event: InputEvent) -> void:

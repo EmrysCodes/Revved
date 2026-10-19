@@ -42,7 +42,7 @@ func _physics_process(delta: float) -> void:
 func drive_route(delta: float) -> void:
 	var path: PackedVector3Array=event.route
 	var distances: PackedFloat64Array=event.distances
-	var inputs: Dictionary=preload("res://racing/route_pilot.gd").command(self,path,distances,cursor,cruise_speed,lane_offset)
+	var inputs: Dictionary=preload("res://racing/route_pilot.gd").command(self,path,distances,cursor,cruise_speed,lane_offset,preload("res://racing/route_pilot.gd").lane_limit_for_section(event._section_at(cursor)))
 	cursor=inputs.cursor
 	var speed:=Vector2(velocity.x,velocity.z).length()
 	var best: float=inputs.distance

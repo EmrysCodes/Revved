@@ -39,20 +39,46 @@ func set_enabled(value: bool) -> void:
 		panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 		panel.offset_left=24;panel.offset_top=24;panel.offset_right=285;panel.offset_bottom=135
 		if is_instance_valid(map_control):
-			map_control.anchor_top=0;map_control.anchor_bottom=0;map_control.offset_top=165;map_control.offset_bottom=399
+			map_control.anchor_top=0;map_control.anchor_bottom=0;map_control.offset_top=206;map_control.offset_bottom=440
 	else:
 		restore(panel,old_panel)
 		if is_instance_valid(map_control): restore(map_control,old_map)
 	layout_buttons()
 func layout_buttons() -> void:
-	var left:=24.0;var right:=size.x-24;var bottom:=size.y-24
+	var padding:=12.0 if size.x<1050 else 24.0
+	var left:=padding;var right:=size.x-padding;var bottom:=size.y-padding
 	if OS.has_feature("mobile"):
 		var area:=DisplayServer.get_display_safe_area();var physical:=Vector2(DisplayServer.window_get_size())
 		if physical.x>0 and physical.y>0:
 			left+=clampf(area.position.x/physical.x*size.x,0,160)
 			right-=clampf((physical.x-area.end.x)/physical.x*size.x,0,160)
 			bottom-=clampf((physical.y-area.end.y)/physical.y*size.y,0,100)
-	buttons={"left":Rect2(left,bottom-110,110,110),"right":Rect2(left+122,bottom-110,110,110),"gas":Rect2(right-126,bottom-145,126,145),"brake":Rect2(right-250,bottom-110,110,110),"ebrake":Rect2(right-250,bottom-224,110,100),"pause":Rect2(size.x*0.5-95,bottom-52,90,52),"reset":Rect2(size.x*0.5+5,bottom-52,90,52),"race":Rect2(size.x*0.5-95,bottom-116,190,50)}
+	var factor:=minf(1,minf(size.x/1050.0,size.y/620.0))
+	factor=maxf(.4,factor)
+	buttons={"left":Rect2(left,bottom-110*factor,110*factor,110*factor),"right":Rect2(left+122*factor,bottom-110*factor,110*factor,110*factor),"gas":Rect2(right-126*factor,bottom-145*factor,126*factor,145*factor),"brake":Rect2(right-250*factor,bottom-110*factor,110*factor,110*factor),"ebrake":Rect2(right-250*factor,bottom-224*factor,110*factor,100*factor),"pause":Rect2(size.x*.5-95*factor,bottom-52*factor,90*factor,52*factor),"reset":Rect2(size.x*.5+5*factor,bottom-52*factor,90*factor,52*factor),"race":Rect2(size.x*.5-95*factor,bottom-116*factor,190*factor,50*factor)}
+	if is_instance_valid(panel):
+		car.get_node("HUD/Screen/DrivePanel/Padding/Stack/Readout").add_theme_font_size_override("font_size",30 if size.x<1050 else 40)
+		car.get_node("HUD/Screen/DrivePanel/Padding/Stack/Controls").visible=not enabled and size.x>=1050
+	if not enabled and is_instance_valid(panel):
+		restore(panel,old_panel)
+		if is_instance_valid(map_control):restore(map_control,old_map)
+		if size.x<1050:
+			panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+			panel.offset_left=left;panel.offset_right=left+261;panel.offset_top=-114;panel.offset_bottom=-12
+			if is_instance_valid(map_control):
+				map_control.offset_left=-132;map_control.offset_right=-12;map_control.anchor_top=0;map_control.anchor_bottom=0;map_control.offset_top=126;map_control.offset_bottom=246
+	if enabled and is_instance_valid(panel):
+		panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+		panel.offset_left=left;panel.offset_top=12 if size.x<1050 else 24
+		panel.offset_right=left+261;panel.offset_bottom=108 if size.x<1050 else 135
+		if is_instance_valid(map_control):
+			restore(map_control,old_map)
+			map_control.anchor_top=0;map_control.anchor_bottom=0
+			if size.x<1050:
+				map_control.anchor_left=0;map_control.anchor_right=0
+				map_control.offset_left=left;map_control.offset_right=left+120;map_control.offset_top=126;map_control.offset_bottom=246
+			else:map_control.offset_top=206;map_control.offset_bottom=440
+
 	queue_redraw()
 func event_node() -> Node:
 	return city.get_node_or_null("CityRace") if is_instance_valid(city) else null
@@ -119,6 +145,7 @@ func _draw() -> void:
 		draw_style_box(style,rect)
 		var lines: PackedStringArray=LABELS[key].split("\n")
 		for i in range(lines.size()):
-			var font_size:=21 if key in HELD else 16
+			var factor:=minf(1,minf(size.x/1050.0,size.y/620.0))
+			var font_size:=maxi(12 if key in HELD else 10,roundi((21 if key in HELD else 16)*factor))
 			var extent:=ThemeDB.fallback_font.get_string_size(lines[i],HORIZONTAL_ALIGNMENT_LEFT,-1,font_size)
-			draw_string(ThemeDB.fallback_font,rect.get_center()+Vector2(-extent.x*0.5,7+(i-(lines.size()-1)*0.5)*26),lines[i],HORIZONTAL_ALIGNMENT_LEFT,-1,font_size,Color.WHITE)
+			draw_string(ThemeDB.fallback_font,rect.get_center()+Vector2(-extent.x*.5,font_size*.32+(i-(lines.size()-1)*.5)*(font_size+4)),lines[i],HORIZONTAL_ALIGNMENT_LEFT,-1,font_size,Color.WHITE)
