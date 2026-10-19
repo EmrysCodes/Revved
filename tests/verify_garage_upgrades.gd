@@ -4,6 +4,7 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	root.get_node("GameSettings").set_vehicle(0, false) # Explicit S64 test fixture.
 	var settings: Node = root.get_node("GameSettings")
 	var old_path: String = settings.settings_path
 	var old_perf := Vector3i(settings.engine_level, settings.brakes_level, settings.tires_level)

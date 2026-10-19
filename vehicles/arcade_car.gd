@@ -35,6 +35,8 @@ var _handbraking: bool = false
 var _drift_blend: float = 0.0
 var _stock_stats: Dictionary
 var controls_locked := false
+var is_player:=true
+var _touch_controls: Control
 
 @onready var _readout: Label = $HUD/Screen/DrivePanel/Padding/Stack/Readout
 @onready var _status: Label = $HUD/Screen/DrivePanel/Padding/Stack/Status
@@ -56,6 +58,10 @@ func _ready() -> void:
 	_snap_camera()
 	GameSettings.units_changed.connect(_update_speed_readout)
 	reset_physics_interpolation()
+	if is_player:
+		_touch_controls=Control.new();_touch_controls.name="TouchControls"
+		_touch_controls.set_script(load("res://ui/touch_driving.gd"));_touch_controls.car=self
+		$HUD/Screen.add_child(_touch_controls)
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -71,7 +77,13 @@ func _physics_process(delta: float) -> void:
 		return
 	var throttle: float = float(_held(KEY_W, KEY_UP)) - float(_held(KEY_S, KEY_DOWN))
 	var steering: float = float(_held(KEY_D, KEY_RIGHT)) - float(_held(KEY_A, KEY_LEFT))
-	_step_motion(delta, throttle, steering, Input.is_physical_key_pressed(KEY_SHIFT), Input.is_physical_key_pressed(KEY_SPACE))
+	var handbrake:=Input.is_physical_key_pressed(KEY_SPACE)
+	if is_instance_valid(_touch_controls) and _touch_controls.enabled:
+		if _touch_controls.held("brake"): throttle=-1
+		elif _touch_controls.held("gas"): throttle=1
+		steering=clampf(steering+float(_touch_controls.held("right"))-float(_touch_controls.held("left")),-1,1)
+		handbrake=handbrake or _touch_controls.held("ebrake")
+	_step_motion(delta, throttle, steering, Input.is_physical_key_pressed(KEY_SHIFT), handbrake)
 	_update_speed_readout()
 	_status.text = "HANDBRAKE" if _handbraking else ("DRIFT / RECOVER" if _drift_blend > 0.15 else "GRIP")
 	if global_position.y < -10.0:

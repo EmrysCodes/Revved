@@ -99,7 +99,16 @@ func settings() -> void:
 	var volume:=HSlider.new();content.add_child(volume);volume.min_value=0;volume.max_value=100;volume.step=1
 	volume.value=StreetProfile.master_volume*100;volume.custom_minimum_size.y=36
 	volume.value_changed.connect(func(value):StreetProfile.master_volume=value/100.0;save_display())
-	label("Music, effects and input rebinding will expand as those systems are built. This build has no music or vehicle audio yet.",17)
+	label("City ambience",21)
+	var ambience:=HSlider.new();content.add_child(ambience);ambience.min_value=0;ambience.max_value=100;ambience.step=1
+	ambience.value=StreetProfile.ambience_volume*100;ambience.custom_minimum_size.y=36
+	ambience.value_changed.connect(func(value):StreetProfile.ambience_volume=value/100.0;save_display())
+	label("Touch driving controls",21)
+	var touch:=OptionButton.new();content.add_child(touch)
+	for option in ["Auto / phones and tablets","Always on / desktop testing","Off"]: touch.add_item(option)
+	touch.select(StreetProfile.touch_mode);touch.custom_minimum_size.y=42
+	touch.item_selected.connect(func(value):StreetProfile.touch_mode=value;feedback.text="Touch preference saved." if StreetProfile.save()==OK else "Touch preference applied; save failed.")
+	label("Music and vehicle engine audio are not included yet.",17)
 	back()
 func save_display() -> void:
 	StreetProfile.apply_display();feedback.text="Display settings saved." if StreetProfile.save()==OK else "Display applied; could not save."
@@ -107,6 +116,7 @@ func credits() -> void:
 	clear("CREDITS & CONTROLS","REVVED • An arcade street racing game in development.")
 	label("W / arrows: accelerate • S: brake / reverse\nA / D: steer • Shift: brake • Space: handbrake\nE: enter nearby race • R: recover / reset\nEsc: pause • Q: leave active race",21)
 	label("City architecture: Quaternius Downtown City MegaKit Standard (CC0). S64 Compact vehicle: IceMaan (CC0). Hartford-inspired layout is an authored approximation. Full asset license files are included in the project.",17)
+	label("Ambience: Free City & Nature Sounds — Gregor Quendel / Cinematic Sound Design, CC BY 4.0. Excerpts looped, gain-adjusted; race crowd downmixed to mono.\nSource: fab.com/listings/15f8225f-057b-4536-af62-7a43ec328632\nLicense: creativecommons.org/licenses/by/4.0/",16)
 	back()
 func _process(delta: float) -> void:
 	if is_instance_valid(preview_car): preview_car.rotation.y+=delta*0.12
@@ -135,5 +145,5 @@ func showroom() -> void:
 	camera.look_at(Vector3(0,0.65,0));camera.fov=43;camera.current=true
 	var caption:=Label.new();add_child(caption);caption.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT)
 	caption.offset_left=-470;caption.offset_right=-30;caption.offset_top=190;caption.offset_bottom=250
-	caption.text="S64 COMPACT\nYour current garage build";caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	caption.text=preload("res://vehicles/vehicle_catalog.gd").title(GameSettings.vehicle_id).to_upper()+"\nYour current garage build";caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	caption.add_theme_font_size_override("font_size",23);caption.modulate=Color("d3b986")

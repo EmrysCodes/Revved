@@ -9,6 +9,8 @@ var last_award:=""
 var fullscreen:=false
 var vsync:=true
 var master_volume:=0.8
+var ambience_volume:=0.7
+var touch_mode:=0
 var antialiasing:=2
 const IDENTITY=preload("res://core/driver_identity.gd")
 var driver_created:=false
@@ -26,6 +28,8 @@ func _ready() -> void:
 		fullscreen=bool(file.get_value("display","fullscreen",false))
 		vsync=bool(file.get_value("display","vsync",true))
 		master_volume=clampf(float(file.get_value("audio","master",0.8)),0,1)
+		ambience_volume=clampf(float(file.get_value("audio","ambience",0.7)),0,1)
+		touch_mode=clampi(int(file.get_value("input","touch_mode",0)),0,2)
 		antialiasing=clampi(int(file.get_value("display","antialiasing",2)),0,3)
 		driver_created=bool(file.get_value("driver","created",false))
 		driver_name=str(file.get_value("driver","name","Alex Mercer")).strip_edges().left(24)
@@ -43,6 +47,8 @@ func save() -> Error:
 	file.set_value("display","vsync",vsync)
 	file.set_value("display","antialiasing",antialiasing)
 	file.set_value("audio","master",master_volume)
+	file.set_value("audio","ambience",ambience_volume)
+	file.set_value("input","touch_mode",touch_mode)
 	file.set_value("driver","created",driver_created)
 	file.set_value("driver","name",driver_name)
 	file.set_value("driver","presentation",driver_presentation)
@@ -63,8 +69,14 @@ func apply_display() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
 	get_viewport().msaa_3d=antialiasing as Viewport.MSAA
+	apply_audio()
+func apply_audio() -> void:
 	AudioServer.set_bus_volume_db(0,linear_to_db(maxf(master_volume,0.0001)))
 	AudioServer.set_bus_mute(0,master_volume<=0)
+	var ambience_bus:=AudioServer.get_bus_index("Ambience")
+	if ambience_bus>=0:
+		AudioServer.set_bus_volume_db(ambience_bus,linear_to_db(maxf(ambience_volume,0.0001)))
+		AudioServer.set_bus_mute(ambience_bus,ambience_volume<=0)
 func record_finish(place: int,recoveries:=0) -> void:
 	if launch_mode!="career": return
 	career_finishes+=1

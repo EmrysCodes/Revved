@@ -5,9 +5,10 @@ signal back_requested
 const ROWS: String = "Frame/Stack/Content/Options/Padding/Rows"
 const SECTION_CONTROLS: Array = [
 	["EngineLabel", "Engine", "EngineBrand", "EngineDetails", "BrakesLabel", "Brakes", "BrakesBrand", "BrakesDetails", "TiresLabel", "Tires", "TiresBrand", "TiresDetails"],
-	["BodyLabel", "Body", "FrontBumperLabel", "FrontBumper", "RearBumperLabel", "RearBumper", "SideSkirtsLabel", "SideSkirts", "WheelsLabel", "Wheels", "SpoilerLabel", "Spoiler", "SpoilerFinishLabel", "SpoilerFinish"],
+	["BodyLabel", "Body", "HoodLabel", "Hood", "FrontBumperLabel", "FrontBumper", "RearBumperLabel", "RearBumper", "SideSkirtsLabel", "SideSkirts", "WheelsLabel", "Wheels", "SpoilerLabel", "Spoiler", "SpoilerFinishLabel", "SpoilerFinish"],
 	["PaintLabel", "Paint", "VinylLabel", "Vinyl", "VinylColorLabel", "VinylColor"]
 ]
+var _vehicle_selector: OptionButton
 var _dragging: bool = false
 var _orbit_pitch: float = 0.28
 var _orbit_distance: float = 7.6
@@ -31,6 +32,21 @@ var _orbit_distance: float = 7.6
 
 
 func _ready() -> void:
+	var hood_label:=Label.new();hood_label.name="HoodLabel";hood_label.text="Hood";get_node(ROWS).add_child(hood_label)
+	get_node(ROWS).move_child(hood_label,4)
+	var hood:=OptionButton.new();hood.name="Hood";get_node(ROWS).add_child(hood);get_node(ROWS).move_child(hood,5)
+	for title in ["Original hood","Stock replacement","Vented hood"]:hood.add_item(title)
+	hood.item_selected.connect(func(index):_show_save_result(GameSettings.set_hood(index)))
+	var heading:=Label.new();heading.text="CURRENT CAR";get_node(ROWS).add_child(heading);get_node(ROWS).move_child(heading,0)
+	_vehicle_selector=OptionButton.new();_vehicle_selector.custom_minimum_size.y=44
+	get_node(ROWS).add_child(_vehicle_selector);get_node(ROWS).move_child(_vehicle_selector,1)
+	var catalog=preload("res://vehicles/vehicle_catalog.gd")
+	for id in range(12):
+		_vehicle_selector.add_item(catalog.title(id),id)
+		_vehicle_selector.set_item_disabled(id,not catalog.available(id))
+	_vehicle_selector.item_selected.connect(func(index):
+		_show_save_result(GameSettings.set_vehicle(_vehicle_selector.get_item_id(index)))
+		_show_section(_sections.current_tab);_refresh_summary())
 	for title in ["Performance", "Visuals", "Paint / decals"]:
 		_sections.add_tab(title)
 	for title in ["Street kit", "Aero kit", "Widebody kit"]:
@@ -80,6 +96,8 @@ func _ready() -> void:
 
 
 func open_garage() -> void:
+	_vehicle_selector.select(GameSettings.vehicle_id if preload("res://vehicles/vehicle_catalog.gd").available(GameSettings.vehicle_id) else 0)
+	get_node(ROWS+"/Hood").select(GameSettings.car_hood)
 	_body.select(GameSettings.car_body)
 	_wheels.select(GameSettings.car_wheels)
 	_paint.select(GameSettings.car_paint)
@@ -118,6 +136,25 @@ func _show_section(section: int) -> void:
 		"Mix body parts, wheels and spoilers. Scroll for more options.",
 		"Choose paint and preset vinyl graphics."
 	][section]
+	var custom:=preload("res://vehicles/vehicle_catalog.gd").customization(GameSettings.vehicle_id)
+	for group in [1,2]:
+		for key in SECTION_CONTROLS[group]:
+			var control=get_node(ROWS+"/"+key)
+			if control is OptionButton: control.disabled=not custom
+	get_node(ROWS+"/Hood").visible=section==1 and GameSettings.vehicle_id==11
+	get_node(ROWS+"/HoodLabel").visible=section==1 and GameSettings.vehicle_id==11
+	if GameSettings.vehicle_id==11:
+		for key in ["FrontBumper","RearBumper","SideSkirts"]:
+			var select:OptionButton=get_node(ROWS+"/"+key)
+			for i in range(3):select.set_item_text(i,["Original","Stock replacement","Aero replacement"][i])
+		for i in range(4):_wheels.set_item_text(i,["Meshy stock / silver","Meshy sport / silver","Meshy stock / dark","Meshy sport / dark"][i])
+	else:
+		for key in ["FrontBumper","RearBumper","SideSkirts"]:
+			for i in range(3):get_node(ROWS+"/"+key).set_item_text(i,["Street","Aero","Widebody"][i])
+		for i in range(4):_wheels.set_item_text(i,["Multi-spoke","Sport spokes","Deep dish","Classic spokes"][i])
+	get_node(ROWS+"/SpoilerFinish").disabled=not custom or GameSettings.car_spoiler==0
+	get_node(ROWS+"/BodyLabel").text="KIT PRESET" if GameSettings.vehicle_id==11 else "KIT PRESET / UPPER BODY"
+	if not custom and section>0: get_node(ROWS+"/Description").text="Original pack body, wheels and finish. Visual alterations are disabled for these cars."
 	$Frame/Stack/Content/Options.set_deferred("scroll_vertical", 0)
 
 

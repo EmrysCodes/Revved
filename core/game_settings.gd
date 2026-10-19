@@ -15,6 +15,8 @@ const BRAND_DETAILS := [["Balanced acceleration and speed.", "Stronger launch; l
 
 var unit_system: Units = Units.US
 var settings_path: String = SETTINGS_PATH
+var vehicle_id: int = 11
+var car_hood: int = 0
 var car_body: int = 0
 var car_wheels: int = 0
 var car_paint: int = 0
@@ -39,6 +41,8 @@ func _ready() -> void:
 		var saved_units: Variant = config.get_value("display", "units", Units.US)
 		if saved_units is int and saved_units in [Units.US, Units.METRIC]:
 			unit_system = saved_units
+		vehicle_id = _load_choice(config, "vehicle_id", 12, 11)
+		car_hood = _load_choice(config, "hood", 3)
 		car_body = _load_choice(config, "body", 3)
 		car_wheels = _load_choice(config, "wheels", 4)
 		car_paint = _load_choice(config, "paint", 6)
@@ -55,6 +59,13 @@ func _ready() -> void:
 		side_skirts = _load_choice(config, "side_skirts", 3, car_body)
 		car_spoiler = _load_choice(config, "spoiler", 3)
 		spoiler_finish = _load_choice(config, "spoiler_finish", 2)
+
+
+func set_vehicle(value: int, persist: bool = true) -> Error:
+	if value<0 or value>11 or not preload("res://vehicles/vehicle_catalog.gd").available(value): return ERR_INVALID_PARAMETER
+	vehicle_id=value
+	car_style_changed.emit()
+	return _save_preferences() if persist else OK
 
 
 func set_unit_system(value: int, persist: bool = true) -> Error:
@@ -85,6 +96,12 @@ func set_car_style(body: int, wheels: int, paint: int, persist: bool = true) -> 
 func _load_choice(config: ConfigFile, key: String, count: int, fallback: int = 0) -> int:
 	var value: Variant = config.get_value("car", key, fallback)
 	return value if value is int and value >= 0 and value < count else fallback
+
+
+func set_hood(value: int, persist: bool = true) -> Error:
+	if value<0 or value>2:return ERR_INVALID_PARAMETER
+	car_hood=value;car_style_changed.emit()
+	return _save_preferences() if persist else OK
 
 
 func set_body_parts(front: int, rear: int, skirts: int, persist: bool = true) -> Error:
@@ -158,6 +175,8 @@ func _save_preferences() -> Error:
 	var config := ConfigFile.new()
 	config.load(settings_path)
 	config.set_value("display", "units", unit_system)
+	config.set_value("car", "vehicle_id", vehicle_id)
+	config.set_value("car", "hood", car_hood)
 	config.set_value("car", "body", car_body)
 	config.set_value("car", "wheels", car_wheels)
 	config.set_value("car", "paint", car_paint)

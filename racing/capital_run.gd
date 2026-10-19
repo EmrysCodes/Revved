@@ -91,6 +91,7 @@ func start_race(retry:=false) -> void:
 		var rival: CharacterBody3D=CAR_SCENE.instantiate()
 		rival.set_script(RIVAL_SCRIPT)
 		rival.name=names[i];rival.event=self;rival.rival_name=names[i];rival.rival_color=colors[i]
+		rival.is_player=false
 		rival.cruise_speed=[40.0,42.0,39.0][i]
 		rival.lane_offset=[2.2,-2.2,0.0][i]
 		rival.collision_layer=2;rival.collision_mask=3

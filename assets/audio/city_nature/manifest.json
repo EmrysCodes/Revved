@@ -1,0 +1,74 @@
+{
+  "city": {
+    "source": "WAV_City_Ambience_Traffic_Street_Cars_and_tram.wav",
+    "start_seconds": 32,
+    "source_duration_seconds": 48,
+    "loop_seconds": 46.0,
+    "channels": 2,
+    "sample_rate": 44100,
+    "rms_dbfs": -30.3700008392334,
+    "peak_dbfs": -6.0,
+    "seam_delta": 0.0010275673121213913,
+    "modifications": "excerpt, DC removal, 2-second endpoint crossfade, gain adjustment"
+  },
+  "highway": {
+    "source": "WAV_City_Ambience_Traffic_Bridge_Tram_train_cars_pedestrians.wav",
+    "start_seconds": 40,
+    "source_duration_seconds": 48,
+    "loop_seconds": 46.0,
+    "channels": 2,
+    "sample_rate": 44100,
+    "rms_dbfs": -23.0,
+    "peak_dbfs": -7.510000228881836,
+    "seam_delta": 0.004111677408218384,
+    "modifications": "excerpt, DC removal, 2-second endpoint crossfade, gain adjustment"
+  },
+  "park": {
+    "source": "WAV_City_Ambience_Park_Spring_With_birds_cars_and_planes.wav",
+    "start_seconds": 45,
+    "source_duration_seconds": 48,
+    "loop_seconds": 46.0,
+    "channels": 2,
+    "sample_rate": 44100,
+    "rms_dbfs": -23.0,
+    "peak_dbfs": -7.300000190734863,
+    "seam_delta": 0.0020508505403995514,
+    "modifications": "excerpt, DC removal, 2-second endpoint crossfade, gain adjustment"
+  },
+  "wind": {
+    "source": "WAV_Wind_Autumn_wind_with_leaves_rustling.wav",
+    "start_seconds": 2,
+    "source_duration_seconds": 42,
+    "loop_seconds": 40.0,
+    "channels": 2,
+    "sample_rate": 44100,
+    "rms_dbfs": -27.260000228881836,
+    "peak_dbfs": -6.0,
+    "seam_delta": 0.010237442329525948,
+    "modifications": "excerpt, DC removal, 2-second endpoint crossfade, gain adjustment"
+  },
+  "water": {
+    "source": "WAV_Water_Stream_I.wav",
+    "start_seconds": 0,
+    "source_duration_seconds": 36,
+    "loop_seconds": 34.0,
+    "channels": 2,
+    "sample_rate": 44100,
+    "rms_dbfs": -23.0,
+    "peak_dbfs": -7.800000190734863,
+    "seam_delta": 0.010101187974214554,
+    "modifications": "excerpt, DC removal, 2-second endpoint crossfade, gain adjustment"
+  },
+  "crowd": {
+    "source": "WAV_Crowd_Cheering_Soft_cheering_and_chatter.wav",
+    "start_seconds": 0,
+    "source_duration_seconds": 36,
+    "loop_seconds": 34.0,
+    "channels": 1,
+    "sample_rate": 44100,
+    "rms_dbfs": -23.0,
+    "peak_dbfs": -7.349999904632568,
+    "seam_delta": 0.0026664650067687035,
+    "modifications": "excerpt, DC removal, 2-second endpoint crossfade, gain adjustment, mono downmix"
+  }
+}

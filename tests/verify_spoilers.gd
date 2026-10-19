@@ -2,6 +2,7 @@ extends SceneTree
 func _initialize() -> void:
 	call_deferred("_run")
 func _run() -> void:
+	root.get_node("GameSettings").set_vehicle(0, false) # Explicit S64 test fixture.
 	var settings: Node = root.get_node("GameSettings")
 	settings.settings_path = "res://tests/spoiler-verification.tmp"
 	settings.set_spoiler(0, 0, false)

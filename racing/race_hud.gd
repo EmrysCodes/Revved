@@ -87,14 +87,18 @@ func _label(parent: Node,text: String,size: int) -> Label:
 	label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	label.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	return label
+func touch_enabled() -> bool:
+	var car=get_parent().get("player")
+	var controls=car.get_node_or_null("HUD/Screen/TouchControls") if car else null
+	return controls!=null and controls.enabled
 func entry(length_text: String,nearby: bool,slow: bool) -> void:
 	card.visible=nearby;navigation.hide();countdown.hide();results_overlay.hide()
 	readout.text="CAPITAL RUN\nStreet sprint • %s • 3 rivals"%length_text
-	hint.text="E — Enter race" if slow else "Slow down to enter"
+	hint.text=("Tap RACE below" if touch_enabled() else "E — Enter race") if slow else "Slow down to enter"
 func racing(position_text: String,time: String,checkpoint: String,section: String,instruction: String) -> void:
 	card.show();navigation.show();results_overlay.hide()
 	readout.text="CAPITAL RUN   %s\n%s   •   %s\n%s"%[position_text,time,checkpoint,section]
-	hint.text="R recover   •   Esc pause   •   Q leave race"
+	hint.text="Tap RESET to recover • PAUSE for menu" if touch_enabled() else "R recover   •   Esc pause   •   Q leave race"
 	navigation.text=instruction
 func center_text(value: String) -> void:
 	countdown.text=value;countdown.visible=not value.is_empty()

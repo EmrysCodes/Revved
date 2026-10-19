@@ -4,6 +4,7 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	root.get_node("GameSettings").set_vehicle(0, false) # Explicit S64 test fixture.
 	var level: Node3D = load("res://scenes/test_circuit.tscn").instantiate()
 	root.add_child(level)
 	var car: CharacterBody3D = level.get_node("VehicleSpawn/PlayerCar")

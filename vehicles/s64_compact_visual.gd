@@ -18,6 +18,8 @@ var _body_index: int = -1
 var _wheel_index: int = -1
 var _spoiler_index: int = -1
 
+var _licensed_model: Node3D
+var _active_vehicle: int = -1
 var _roll_angle: float = 0.0
 @onready var _wheels: Array[Node3D] = [$FrontLeft/Spin, $FrontRight/Spin, $RearLeft/Spin, $RearRight/Spin]
 
@@ -28,6 +30,19 @@ func _ready() -> void:
 
 
 func apply_saved_style() -> void:
+	var catalog=preload("res://vehicles/vehicle_catalog.gd")
+	var choice:int=GameSettings.vehicle_id if catalog.available(GameSettings.vehicle_id) else 0
+	if choice!=_active_vehicle:
+		if is_instance_valid(_licensed_model):
+			remove_child(_licensed_model);_licensed_model.queue_free()
+		_licensed_model=null;_active_vehicle=choice
+		if choice>0:
+			_licensed_model=load(catalog.path_for(choice)).instantiate();add_child(_licensed_model)
+	for key in ["Body","Spoiler","FrontLeft","FrontRight","RearLeft","RearRight"]: get_node(key).visible=choice==0
+	if choice>0:
+		if _licensed_model.has_method("apply_saved_style"): _licensed_model.apply_saved_style()
+		reset_physics_interpolation()
+		return
 	var parts := Vector4i(GameSettings.car_body, GameSettings.front_bumper, GameSettings.rear_bumper, GameSettings.side_skirts)
 	if parts != _parts_signature:
 		var old: Node3D = $Body
@@ -108,6 +123,8 @@ func _replace_model(parent_node: Node, model_name: String, scene: PackedScene) -
 
 
 func update_wheels(steering: float, forward_speed: float, delta: float) -> void:
+	if is_instance_valid(_licensed_model):
+		_licensed_model.update_wheels(steering,forward_speed,delta);return
 	var angle: float = -clampf(steering, -1.0, 1.0) * deg_to_rad(maximum_steer_degrees)
 	$FrontLeft.rotation.y = angle
 	$FrontRight.rotation.y = angle
@@ -117,6 +134,7 @@ func update_wheels(steering: float, forward_speed: float, delta: float) -> void:
 
 
 func reset_wheels() -> void:
+	if is_instance_valid(_licensed_model): _licensed_model.reset_wheels()
 	_roll_angle = 0.0
 	$FrontLeft.rotation = Vector3.ZERO
 	$FrontRight.rotation = Vector3.ZERO

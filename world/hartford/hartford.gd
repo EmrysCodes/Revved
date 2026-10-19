@@ -7,6 +7,7 @@ func _ready() -> void:
 	car.get_node("CameraArm/FollowCamera").far = 5000
 	car.reset_to_spawn.connect(_restore_glass)
 	call_deferred("_add_city_life")
+	call_deferred("_add_ambience")
 	if FileAccess.file_exists("res://racing/capital_run_route.json"):
 		call_deferred("_add_city_race")
 func _add_city_race() -> void:
@@ -20,6 +21,9 @@ func _add_city_race() -> void:
 func _add_city_life() -> void:
 	var life:=Node3D.new();life.name="CityLife"
 	life.set_script(load("res://world/hartford/city_life.gd"));add_child(life)
+func _add_ambience() -> void:
+	var ambience:=Node3D.new();ambience.name="CityAmbience"
+	ambience.set_script(load("res://audio/city_ambience.gd"));add_child(ambience)
 func _restore_glass() -> void:
 	for pane in $Shortcuts.find_children("*","Area3D",true,false):
 		pane.restore()
