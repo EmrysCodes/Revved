@@ -353,23 +353,12 @@ func _build_highway() -> void:
 func _build_scene() -> void:
 	var env := WorldEnvironment.new()
 	env.name = "WorldEnvironment"
-	var environment := Environment.new()
-	environment.background_mode = Environment.BG_SKY
-	var sky := Sky.new()
-	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color(0.20, 0.36, 0.52)
-	sky_mat.sky_horizon_color = Color(0.72, 0.77, 0.8)
-	sky.sky_material = sky_mat
-	environment.sky = sky
-	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.76, 0.84, 0.95)
-	environment.ambient_light_energy = 0.65
+	var environment := preload("res://world/night_lighting.gd").environment()
 	env.environment = environment
 	put(env, city)
 	var sun := DirectionalLight3D.new()
-	sun.name = "AfternoonSun"
-	sun.rotation_degrees = Vector3(-48, -32, 0)
-	sun.light_energy = 1.1
+	sun.name = "Moonlight"
+	preload("res://world/night_lighting.gd").moon(sun)
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 220
 	put(sun, city)

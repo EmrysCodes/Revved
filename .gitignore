@@ -7,3 +7,6 @@
 Thumbs.db
 # Fab Standard licensed source assets stay local/private.
 /assets/licensed/
+
+# Python preparation caches
+__pycache__/

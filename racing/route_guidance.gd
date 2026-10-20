@@ -6,9 +6,13 @@ static func maneuvers(path:PackedVector3Array,distances:PackedFloat64Array,finis
 	for i in range(2,mini(finish-1,path.size()-2)):
 		var before:=path[i]-path[i-2];before.y=0
 		var after:=path[i+2]-path[i];after.y=0
-		if before.length()<2 or after.length()<2:continue
+		# Authored junctions contain sub-metre samples; reject only degenerate
+		# vectors, otherwise the smoothest street corners disappear from guidance.
+		if before.length()<0.01 or after.length()<0.01:continue
 		var angle:=before.signed_angle_to(after,Vector3.UP)
-		var curved:=absf(angle)>0.055
+		# Include broad city bends; the accumulated-angle filter below rejects
+		# small wiggles. A sharp per-sample threshold skipped long curved roads.
+		var curved:=absf(angle)>0.008
 		if first>=0 and ((curved and signf(angle)!=sign_value) or distances[i]-distances[last]>28):
 			_add(turns,path,distances,first,last,total)
 			first=-1;total=0

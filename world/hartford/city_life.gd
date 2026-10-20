@@ -5,6 +5,7 @@ var meshes: Dictionary={}
 var counts: Dictionary={}
 var road_cells: Dictionary={}
 var space: PhysicsDirectSpaceState3D
+var lamp_positions := PackedVector3Array()
 func ground(x: float,z: float) -> float:
 	var land:=4.0+16.0*(1.0-smoothstep(-1700,500,x))+2.0*sin(z/750.0)
 	var river_x:=730.0+35.0*sin(z/800.0)
@@ -20,6 +21,10 @@ func cylinder(radius: float,height: float,color: Color) -> CylinderMesh:
 func _ready() -> void:
 	await get_tree().physics_frame
 	space=get_world_3d().direct_space_state
+	for kind: String in ["tree_ash","tree_linden"]:
+		for level: String in ["near","far"]:
+			var path: String = "res://assets/licensed/modern_city_architecture/"+kind+"_"+level+".res"
+			if ResourceLoader.exists(path): meshes[kind+"_"+level] = load(path)
 	meshes.trunk=cylinder(0.18,3.4,Color("62503c"))
 	for i in range(3):
 		var crown:=SphereMesh.new();crown.radius=2.2;crown.height=4.8;crown.radial_segments=10;crown.rings=5
@@ -32,6 +37,9 @@ func _ready() -> void:
 	meshes.pole=cylinder(0.09,7.2,Color("36434b"))
 	meshes.arm=box_mesh(Vector3(1.8,0.12,0.12),Color("36434b"))
 	meshes.light=box_mesh(Vector3(0.65,0.12,0.35),Color("f9e7b3"))
+	meshes.light.material.emission_enabled = true
+	meshes.light.material.emission = Color("ffd59a")
+	meshes.light.material.emission_energy_multiplier = 2.0
 	meshes.planter=box_mesh(Vector3(1.6,0.35,1.6),Color("aaa79b"))
 	var shrub:=SphereMesh.new();shrub.radius=0.72;shrub.height=0.7;shrub.radial_segments=10;shrub.rings=5
 	shrub.material=material(Color("3c613c"));meshes.shrub=shrub
@@ -93,11 +101,22 @@ func suitable(p: Vector3,road_clearance: float) -> bool:
 	query.transform=Transform3D(Basis.IDENTITY,p+Vector3.UP*4.6)
 	return space.intersect_shape(query,1).is_empty()
 func prop(key: String,p: Vector3,yaw: float,scale_value:=Vector3.ONE) -> void:
-	var cell:="%s_%d_%d"%[key,floori(p.x/220),floori(p.z/220)]
+	var cell_size := 80.0 if key.begins_with("tree_") else 220.0
+	var cell:="%s_%d_%d"%[key,floori(p.x/cell_size),floori(p.z/cell_size)]
 	if not batches.has(cell): batches[cell]=[key,[]]
 	batches[cell][1].append(Transform3D(Basis(Vector3.UP,yaw).scaled_local(scale_value),p))
 	counts[key]=counts.get(key,0)+1
 func tree(p: Vector3,color: int) -> void:
+	var kind := "tree_ash" if color%2==0 else "tree_linden"
+	if meshes.has(kind+"_near") and meshes.has(kind+"_far"):
+		# Existing planting points stay clear of roads; replace only the visual mesh.
+		var height := 6.0+fposmod(p.x*0.13+p.z*0.19,2.5)
+		var scale_value: float = height/meshes[kind+"_near"].get_aabb().size.y
+		var yaw := fposmod(p.x*0.37+p.z*0.23,TAU)
+		prop(kind+"_near",p,yaw,Vector3.ONE*scale_value)
+		prop(kind+"_far",p,yaw,Vector3.ONE*scale_value)
+		counts["trunk"] = counts.get("trunk",0)+1
+		return
 	prop("trunk",p+Vector3.UP*1.7,0)
 	prop("leaves"+str(color),p+Vector3.UP*4.6,0,Vector3(0.9,0.9,0.85))
 	prop("leaves"+str(color),p+Vector3(1.0,4.0,0.2),0,Vector3(0.75,0.7,0.8))
@@ -109,6 +128,7 @@ func bench(p: Vector3,yaw: float) -> void:
 	for side in [-0.75,0.75]: prop("leg",p+basis*Vector3(side,0.25,0),yaw)
 func lamp(p: Vector3,yaw: float,banner: bool) -> void:
 	var basis:=Basis(Vector3.UP,yaw)
+	lamp_positions.append(p+basis*Vector3(1.6,7.0,0))
 	prop("pole",p+Vector3.UP*3.6,yaw)
 	prop("arm",p+basis*Vector3(0.8,7.1,0),yaw)
 	prop("light",p+basis*Vector3(1.6,7.0,0),yaw)
@@ -121,4 +141,12 @@ func flush() -> void:
 		for i in range(multi.instance_count): multi.set_instance_transform(i,data[1][i])
 		var visual:=MultiMeshInstance3D.new();visual.name=key;visual.multimesh=multi
 		visual.visibility_range_end=420 if data[0].begins_with("leaves") else 260
-		visual.visibility_range_end_margin=40;add_child(visual)
+		visual.visibility_range_end_margin=40
+		if data[0].begins_with("tree_"):
+			var far: bool = data[0].ends_with("_far")
+			visual.visibility_range_begin = (100 if OS.has_feature("mobile") else 165) if far else 0
+			visual.visibility_range_end = (340 if OS.has_feature("mobile") else 520) if far else (120 if OS.has_feature("mobile") else 185)
+			visual.visibility_range_begin_margin = 10; visual.visibility_range_end_margin = 10
+			if far: visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		visual.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+		add_child(visual)

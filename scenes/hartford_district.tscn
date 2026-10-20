@@ -19731,8 +19731,11 @@ instance_count = 1
 mesh = ExtResource("2590_po5o4")
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_qnyfn"]
-sky_top_color = Color(0.2, 0.36, 0.52, 1)
-sky_horizon_color = Color(0.72, 0.77, 0.8, 1)
+sky_top_color = Color(0.008, 0.024, 0.063, 1)
+sky_horizon_color = Color(0.078, 0.133, 0.224, 1)
+ground_bottom_color = Color(0.008, 0.024, 0.063, 1)
+ground_horizon_color = Color(0.078, 0.133, 0.224, 1)
+sun_curve = 0.0
 
 [sub_resource type="Sky" id="Sky_1r8br"]
 sky_material = SubResource("ProceduralSkyMaterial_qnyfn")
@@ -19741,8 +19744,8 @@ sky_material = SubResource("ProceduralSkyMaterial_qnyfn")
 background_mode = 2
 sky = SubResource("Sky_1r8br")
 ambient_light_source = 2
-ambient_light_color = Color(0.76, 0.84, 0.95, 1)
-ambient_light_energy = 0.65
+ambient_light_color = Color(0.57, 0.66, 0.82, 1)
+ambient_light_energy = 0.48
 
 [node name="HartfordDistrict" type="Node3D" unique_id=50309715]
 script = ExtResource("1_tkc2g")
@@ -66210,9 +66213,10 @@ placements = Array[Transform3D]([Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1600.668
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2092521230]
 environment = SubResource("Environment_rapju")
 
-[node name="AfternoonSun" type="DirectionalLight3D" parent="." unique_id=827665039]
+[node name="Moonlight" type="DirectionalLight3D" parent="." unique_id=827665039]
+light_color = Color(0.65, 0.74, 0.9, 1)
 transform = Transform3D(0.8480481, 0.3938068, -0.35458517, 0, 0.66913056, 0.74314487, 0.52991927, -0.63022256, 0.5674549, 0, 0, 0)
-light_energy = 1.1
+light_energy = 0.42
 shadow_enabled = true
 directional_shadow_max_distance = 220.0
 

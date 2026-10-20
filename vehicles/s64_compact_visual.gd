@@ -43,6 +43,10 @@ func apply_saved_style() -> void:
 	for key in ["Body","Spoiler","FrontLeft","FrontRight","RearLeft","RearRight"]: get_node(key).visible=choice==0
 	if choice>0:
 		if _licensed_model.has_method("apply_saved_style"): _licensed_model.apply_saved_style()
+		if choice==5:
+			var finish := PAINT_COLORS[GameSettings.car_paint]
+			if GameSettings.car_paint==0: finish = Color(0.08,0.25,0.45)
+			preload("res://world/showcase/hero_materials.gd").apply(_licensed_model,finish)
 		reset_physics_interpolation()
 		return
 	var parts := Vector4i(GameSettings.car_body, GameSettings.front_bumper, GameSettings.rear_bumper, GameSettings.side_skirts)

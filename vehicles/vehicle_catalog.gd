@@ -9,3 +9,5 @@ static func title(id: int) -> String:
 	return "Meshy JDM Coupe" if id==11 else ("S64 Compact" if id==0 else "Arcade Car %02d"%id)
 static func customization(id: int) -> bool:
 	return id in [0,11]
+static func paint_customization(id: int) -> bool:
+	return id in [0,5,11]

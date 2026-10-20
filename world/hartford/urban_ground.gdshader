@@ -1,5 +1,7 @@
 shader_type spatial;
 uniform sampler2D pavement : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D grass : source_color, filter_linear_mipmap, repeat_enable;
+uniform bool detailed_grass = false;
 varying vec3 world_position;
 void vertex() { world_position=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz; }
 void fragment() {
@@ -14,6 +16,13 @@ void fragment() {
 	vec3 concrete=texture(pavement,p/9.0).rgb*vec3(0.65,0.63,0.59);
 	float noise=0.96+0.04*sin(p.x*0.17)*sin(p.y*0.13);
 	float meadow=0.98+0.02*sin(p.x*0.073+sin(p.y*0.041))*sin(p.y*0.083);
-	ALBEDO=mix(vec3(0.17,0.24,0.105)*noise*meadow,concrete,urban);
+	vec3 turf=vec3(0.17,0.24,0.105);
+	if (detailed_grass) {
+		// Two scales soften the visible repeat across large interchange buffers.
+		vec3 detail=texture(grass,p/3.0).rgb;
+		vec3 broad=texture(grass,p/19.0).rgb;
+		turf=mix(detail,broad,0.18)*vec3(0.62,0.65,0.56);
+	}
+	ALBEDO=mix(turf*noise*meadow,concrete,urban);
 	ROUGHNESS=0.94;
 }

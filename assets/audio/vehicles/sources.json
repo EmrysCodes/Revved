@@ -1,0 +1,17 @@
+{
+  "engine": {
+    "source": "https://github.com/KenneyNL/Starter-Kit-Racing/blob/main/audio/engine.ogg",
+    "license": "CC0",
+    "sha256": "6d665dfc961e2d522c866bdcf12fc0ac56c885c0c7117e830df84ba8eecd655c"
+  },
+  "skid": {
+    "source": "https://github.com/KenneyNL/Starter-Kit-Racing/blob/main/audio/skid.ogg",
+    "license": "CC0",
+    "sha256": "e62a42c0a4af29ed69b37cfc80d088a6808c59f8f725285ebcc3f409267965a0"
+  },
+  "impact": {
+    "source": "https://github.com/KenneyNL/Starter-Kit-Racing/blob/main/audio/impact.ogg",
+    "license": "CC0",
+    "sha256": "964c5fcfb91e7710e2af25c2243c8b7160756b223b0984bacc9eb25bfeea057b"
+  }
+}

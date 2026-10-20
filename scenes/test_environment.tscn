@@ -3,6 +3,11 @@
 [ext_resource type="PackedScene" path="res://vehicles/arcade_car.tscn" id="1_car"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial"]
+sky_top_color = Color(0.008, 0.024, 0.063, 1)
+sky_horizon_color = Color(0.078, 0.133, 0.224, 1)
+ground_bottom_color = Color(0.008, 0.024, 0.063, 1)
+ground_horizon_color = Color(0.078, 0.133, 0.224, 1)
+sun_curve = 0.0
 
 [sub_resource type="Sky" id="Sky"]
 sky_material = SubResource("SkyMaterial")
@@ -10,9 +15,9 @@ sky_material = SubResource("SkyMaterial")
 [sub_resource type="Environment" id="Environment"]
 background_mode = 2
 sky = SubResource("Sky")
-ambient_light_source = 3
-ambient_light_color = Color(0.75, 0.8, 1, 1)
-ambient_light_energy = 0.45
+ambient_light_source = 2
+ambient_light_color = Color(0.57, 0.66, 0.82, 1)
+ambient_light_energy = 0.48
 
 [sub_resource type="StandardMaterial3D" id="Material_Ground"]
 albedo_color = Color(0.13, 0.19, 0.14, 1)
@@ -62,9 +67,10 @@ size = Vector3(0.18, 0.02, 3)
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment")
 
-[node name="Sun" type="DirectionalLight3D" parent="."]
+[node name="Moonlight" type="DirectionalLight3D" parent="."]
+light_color = Color(0.65, 0.74, 0.9, 1)
 rotation_degrees = Vector3(-55, -30, 0)
-light_energy = 1.2
+light_energy = 0.42
 shadow_enabled = true
 
 [node name="OverviewCamera" type="Camera3D" parent="."]

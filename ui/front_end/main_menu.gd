@@ -32,7 +32,7 @@ func _ready() -> void:
 	content=VBoxContainer.new();scroll.add_child(content);content.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation",8)
 	feedback=Label.new();layout.add_child(feedback);feedback.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-	feedback.text="PLAYTEST / TWO DISTRICTS / LOCAL SAVES"
+	feedback.text="NIGHT CITY UPDATE / TWO DISTRICTS / LOCAL SAVES"
 	home()
 	if StreetProfile.return_to_legacy:
 		StreetProfile.return_to_legacy=false;call_deferred("career")
@@ -99,7 +99,9 @@ func settings() -> void:
 	label("Anti-aliasing",21)
 	var aa:=OptionButton.new();content.add_child(aa)
 	for option in ["Off","2× MSAA","4× MSAA","8× MSAA"]: aa.add_item(option)
-	aa.select(StreetProfile.antialiasing);aa.custom_minimum_size.y=42
+	aa.select(mini(StreetProfile.antialiasing,1) if OS.has_feature("mobile") else StreetProfile.antialiasing);aa.custom_minimum_size.y=42
+	if OS.has_feature("mobile"):
+		aa.set_item_disabled(2,true);aa.set_item_disabled(3,true)
 	aa.item_selected.connect(func(value):StreetProfile.antialiasing=value;save_display())
 	label("Master volume",21)
 	var volume:=HSlider.new();content.add_child(volume);volume.min_value=0;volume.max_value=100;volume.step=1
@@ -114,7 +116,11 @@ func settings() -> void:
 	for option in ["Auto / phones and tablets","Always on / desktop testing","Off"]: touch.add_item(option)
 	touch.select(StreetProfile.touch_mode);touch.custom_minimum_size.y=42
 	touch.item_selected.connect(func(value):StreetProfile.touch_mode=value;feedback.text="Touch preference saved." if StreetProfile.save()==OK else "Touch preference applied; save failed.")
-	label("Music and vehicle engine audio are not included yet.",17)
+	label("Engines, tires & impacts",21)
+	var vehicles:=HSlider.new();content.add_child(vehicles);vehicles.min_value=0;vehicles.max_value=100;vehicles.step=1
+	vehicles.value=StreetProfile.vehicle_volume*100;vehicles.custom_minimum_size.y=36
+	vehicles.value_changed.connect(func(value):StreetProfile.vehicle_volume=value/100.0;save_display())
+	label("Music is not included yet.",17)
 	back()
 func save_display() -> void:
 	StreetProfile.apply_display();feedback.text="Display settings saved." if StreetProfile.save()==OK else "Display applied; could not save."
@@ -123,6 +129,8 @@ func credits() -> void:
 	label("W / arrows: accelerate • S: brake / reverse\nA / D: steer • Shift: brake • Space: handbrake\nE: enter nearby race • R: recover / reset\nEsc: pause • Q: leave active race",21)
 	label("City architecture: Quaternius Downtown City MegaKit Standard (CC0). S64 Compact vehicle: IceMaan (CC0). Hartford-inspired layout is an authored approximation. Full asset license files are included in the project.",17)
 	label("Traffic vehicles: Kenney Car Kit (CC0). Animated pedestrians: Quaternius Ultimate Modular Men (CC0). Arcade cars: Store InvoGames (Fab Standard License). Sources and license files are included with the project.",16)
+	label("Vehicle audio: Kenney Starter Kit Racing (CC0). Tire skid: Landeplage (CC0). REVVED supplies gearing, pitch, slip and impact mixing. github.com/KenneyNL/Starter-Kit-Racing",16)
+	label("City architecture and street surfaces: Modern City Environment — OTOY360studios, Fab Standard license. Reusable building models, distance proxies, revised lighting and local car material overrides. Licensed source files remain private.",16)
 	label("Ambience: Free City & Nature Sounds — Gregor Quendel / Cinematic Sound Design, CC BY 4.0. Excerpts looped, gain-adjusted; race crowd downmixed to mono.\nSource: fab.com/listings/15f8225f-057b-4536-af62-7a43ec328632\nLicense: creativecommons.org/licenses/by/4.0/",16)
 	back()
 func _process(delta: float) -> void:
@@ -133,6 +141,7 @@ func showroom() -> void:
 	container.anchor_left=0.54;container.stretch=true;container.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	var view:=SubViewport.new();container.add_child(view)
 	view.own_world_3d=true;view.gui_disable_input=true;view.msaa_3d=Viewport.MSAA_4X
+	view.use_taa=RenderingServer.get_current_rendering_method()=="forward_plus" and not OS.has_feature("mobile")
 	var world:=Node3D.new();view.add_child(world)
 	var environment:=WorldEnvironment.new();world.add_child(environment)
 	environment.environment=Environment.new()
@@ -150,6 +159,7 @@ func showroom() -> void:
 	disk.material=mat;platform.mesh=disk;platform.position.y=-0.12
 	var camera:=Camera3D.new();world.add_child(camera);camera.position=Vector3(5.4,2.9,-6.7)
 	camera.look_at(Vector3(0,0.65,0));camera.fov=43;camera.current=true
+	preload("res://ui/front_end/night_showroom.gd").decorate(world,preview_car,platform,camera,environment.environment)
 	var caption:=Label.new();add_child(caption);caption.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT)
 	caption.offset_left=-470;caption.offset_right=-30;caption.offset_top=190;caption.offset_bottom=250
 	caption.text=preload("res://vehicles/vehicle_catalog.gd").title(GameSettings.vehicle_id).to_upper()+"\nYOUR CURRENT GARAGE BUILD";caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER

@@ -7,6 +7,10 @@ var driven: float = 0.0
 @onready var car: CharacterBody3D = $VehicleSpawn/PlayerCar
 @onready var readout: Label = $CityHUD/Screen/Readout
 func _ready() -> void:
+	if not get_meta("offline_build",false):
+		var night := Node3D.new()
+		night.set_script(load("res://world/night_lighting.gd"))
+		add_child(night)
 	car.get_node("CameraArm/FollowCamera").far = 1500.0
 	GameSettings.units_changed.connect(_update_readout)
 	_update_readout()

@@ -9,6 +9,8 @@ func _ready() -> void:
 	car.reset_to_spawn.connect(_restore_glass)
 	if ResourceLoader.exists("res://world/eastside/frontage.tscn"):
 		add_child(load("res://world/eastside/frontage.tscn").instantiate())
+	if preload("res://world/hartford/modern_art.gd").available():
+		var modern := Node3D.new(); modern.set_script(load("res://world/hartford/modern_art.gd")); add_child(modern)
 	call_deferred("_add_city_life")
 	call_deferred("_add_ambience")
 	call_deferred("_add_population")
@@ -49,4 +51,7 @@ func _update_readout() -> void:
 		district = "SHELDON / SOUTH END"
 	elif car.position.z < -700:
 		district = "NORTH END / HIGHWAY INTERCHANGE"
+	# Reserve the upper-right corner for the event card and race standings.
+	var race := get_node_or_null("CityRace")
+	readout.visible = race==null or not is_instance_valid(race.hud) or not race.hud.card.visible
 	readout.text = "%s\nDriven  %s\nI-84 / I-91 / RT 2 / RT 3 + CITY LOOP\nGlass-front arcades and park paths are driveable" % [district, GameSettings.format_distance(driven)]

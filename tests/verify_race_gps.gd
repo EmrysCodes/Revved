@@ -16,6 +16,16 @@ func run() -> void:
 	check(is_equal_approx(early.distance-later.distance,50),"Turn countdown follows along-road progress")
 	check(GUIDANCE.next_turn(turns,turns[0].start+1).in_turn,"Turn instruction remains through the corner")
 	check(GUIDANCE.next_turn(turns,turns[0].end+1).kind=="finish","Passed turn advances to finish")
+	var bend:=PackedVector3Array();var bend_distances:=PackedFloat64Array([0.0])
+	for i in range(161):
+		var angle:=float(i)/160.0*PI*0.5
+		bend.append(Vector3(300.0*(1.0-cos(angle)),0,-300.0*sin(angle)))
+	for i in range(1,bend.size()):bend_distances.append(bend_distances[-1]+bend[i-1].distance_to(bend[i]))
+	var broad:=GUIDANCE.maneuvers(bend,bend_distances,bend.size()-1)
+	check(broad.size()==2 and broad[0].kind=="right","GPS retains a broad quarter-circle city bend")
+	for i in range(bend.size()):bend[i]*=0.1;bend_distances[i]*=0.1
+	var dense:=GUIDANCE.maneuvers(bend,bend_distances,bend.size()-1)
+	check(dense.size()==2 and dense[0].kind=="right","Sub-metre junction samples retain the actual turn")
 	root.get_node("StreetProfile").touch_mode=1
 	var city:Node3D=load("res://scenes/hartford_district.tscn").instantiate();city.set_meta("disable_population",true);root.add_child(city)
 	for i in range(14):await physics_frame

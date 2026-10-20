@@ -37,7 +37,13 @@ func run() -> void:
 	var life:=city.get_node("CityLife")
 	var counts: Dictionary=life.get_meta("counts")
 	check(counts.get("trunk",0)>300 and counts.get("seat",0)>100 and counts.get("pole",0)>100,"Substantial city street dressing")
+	if ResourceLoader.exists("res://assets/licensed/modern_city_architecture/tree_ash_near.res"):
+		check(counts.get("tree_ash_near",0)+counts.get("tree_linden_near",0)==counts.get("trunk",0),"Every planting uses a detailed tree")
+		check(counts.get("tree_ash_far",0)+counts.get("tree_linden_far",0)==counts.get("trunk",0),"Every detailed tree has a distant proxy")
 	check(life.find_children("*","CollisionObject3D",true,false).is_empty(),"Soft street props preserve driving corridors")
+	check(city.get_node("CityTraffic/TrafficAudio").slots.size()<=4,"Nearby traffic engine playback stays bounded")
+	var garage: Control=city.car.get_node("PauseMenu/Garage")
+	check(garage.get_node("Frame/Stack/Content/Preview/Viewport/Stage/WorkshopDetails").find_children("*","CollisionObject3D",true,false).is_empty(),"Workshop dressing does not add collision")
 	check(city.car.get_node("PauseMenu/Overlay/Center/Card/Padding/Stack/MainMenu")!=null,"Pause menu returns to front end")
 	DirAccess.remove_absolute(profile.path)
 	print("PASS: main menu pages/resolutions, career persistence, practice separation, city vegetation/furniture, main menu return")

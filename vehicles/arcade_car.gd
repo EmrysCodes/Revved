@@ -37,6 +37,8 @@ var _stock_stats: Dictionary
 var controls_locked := false
 var is_player:=true
 var _touch_controls: Control
+var audio_throttle := 0.0
+var _vehicle_audio: Node3D
 
 @onready var _readout: Label = $HUD/Screen/DrivePanel/Padding/Stack/Readout
 @onready var _status: Label = $HUD/Screen/DrivePanel/Padding/Stack/Status
@@ -59,7 +61,9 @@ func _ready() -> void:
 	_snap_camera()
 	GameSettings.units_changed.connect(_update_speed_readout)
 	reset_physics_interpolation()
+	_vehicle_audio = Node3D.new(); _vehicle_audio.set_script(load("res://audio/vehicle_audio.gd")); add_child(_vehicle_audio)
 	if is_player:
+		preload("res://world/night_lighting.gd").headlights(self)
 		_touch_controls=Control.new();_touch_controls.name="TouchControls"
 		_touch_controls.set_script(load("res://ui/touch_driving.gd"));_touch_controls.car=self
 		$HUD/Screen.add_child(_touch_controls)
@@ -87,11 +91,13 @@ func _physics_process(delta: float) -> void:
 	_step_motion(delta, throttle, steering, Input.is_physical_key_pressed(KEY_SHIFT), handbrake)
 	_update_speed_readout()
 	_status.text = "HANDBRAKE" if _handbraking else ("DRIFT / RECOVER" if _drift_blend > 0.15 else "GRIP")
+	_status.text += "  /  GEAR "+_vehicle_audio.gear_label()
 	if global_position.y < -10.0:
 		_reset_car()
 
 
 func _step_motion(delta: float, throttle: float, steering: float, footbrake: bool, handbrake: bool) -> void:
+	audio_throttle = 0.0 if footbrake or controls_locked else throttle
 	var planar: Vector3 = Vector3(velocity.x, 0.0, velocity.z)
 	var grounded: bool = is_on_floor()
 	var forward: Vector3 = -global_basis.z

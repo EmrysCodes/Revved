@@ -35,6 +35,7 @@ func _ready() -> void:
 		p.y=ground(p.x,p.z);intersections.append(p);make_signals(p)
 	set_meta("vehicle_count",agents.size())
 	print("CityTraffic: ",agents.size()," lane-following vehicles")
+	var audio := Node3D.new(); audio.set_script(load("res://audio/traffic_audio.gd")); add_child(audio)
 func ground(x:float,z:float) -> float:
 	return 4+16*(1-smoothstep(-1700,500,x))+2*sin(z/750)
 func reserve_race_junctions(event:Node) -> void:

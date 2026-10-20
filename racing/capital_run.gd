@@ -299,8 +299,10 @@ func _build_markers() -> void:
 		var gate:=_gate(route[index],index==finish_index)
 		gates.append(gate)
 	entry_marker=_gate(entry_position,true)
+	# The entry is a race invitation; retain FINISH only on the actual finish gate.
+	for label: Label3D in entry_marker.find_children("*","Label3D",true,false): label.hide()
 	var title:=Label3D.new();entry_marker.add_child(title)
-	title.text=event_title+"\nE — ENTER";title.position.y=6;title.font_size=48;title.pixel_size=0.012
+	title.text=event_title+"\nE — ENTER";title.position.y=6;title.font_size=40;title.pixel_size=0.009
 	title.billboard=BaseMaterial3D.BILLBOARD_ENABLED
 	var arrow:=ArrayMesh.new()
 	var tool:=SurfaceTool.new();tool.begin(Mesh.PRIMITIVE_TRIANGLES);tool.set_material(gate_material)

@@ -15,7 +15,7 @@ const BRAND_DETAILS := [["Balanced acceleration and speed.", "Stronger launch; l
 
 var unit_system: Units = Units.US
 var settings_path: String = SETTINGS_PATH
-var vehicle_id: int = 11
+var vehicle_id: int = 5
 var car_hood: int = 0
 var car_body: int = 0
 var car_wheels: int = 0
@@ -41,7 +41,11 @@ func _ready() -> void:
 		var saved_units: Variant = config.get_value("display", "units", Units.US)
 		if saved_units is int and saved_units in [Units.US, Units.METRIC]:
 			unit_system = saved_units
-		vehicle_id = _load_choice(config, "vehicle_id", 12, 11)
+		vehicle_id = _load_choice(config, "vehicle_id", 12, 5)
+		# One-time replacement of the old prototype default; its custom parts stay saved.
+		if int(config.get_value("car","city_art_revision",0))<1 and vehicle_id==11 and preload("res://vehicles/vehicle_catalog.gd").available(5):
+			vehicle_id = 5
+			config.set_value("car","vehicle_id",vehicle_id); config.set_value("car","city_art_revision",1); config.save(settings_path)
 		car_hood = _load_choice(config, "hood", 3)
 		car_body = _load_choice(config, "body", 3)
 		car_wheels = _load_choice(config, "wheels", 4)
@@ -176,6 +180,7 @@ func _save_preferences() -> Error:
 	config.load(settings_path)
 	config.set_value("display", "units", unit_system)
 	config.set_value("car", "vehicle_id", vehicle_id)
+	config.set_value("car", "city_art_revision", 1)
 	config.set_value("car", "hood", car_hood)
 	config.set_value("car", "body", car_body)
 	config.set_value("car", "wheels", car_wheels)

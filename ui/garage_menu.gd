@@ -12,6 +12,7 @@ var _vehicle_selector: OptionButton
 var _dragging: bool = false
 var _orbit_pitch: float = 0.28
 var _orbit_distance: float = 7.6
+var _touch_points: Dictionary = {}
 
 @onready var _body: OptionButton = get_node(ROWS + "/Body")
 @onready var _wheels: OptionButton = get_node(ROWS + "/Wheels")
@@ -33,6 +34,8 @@ var _orbit_distance: float = 7.6
 
 func _ready() -> void:
 	preload("res://ui/racing_theme.gd").apply(self)
+	var workshop := Node3D.new(); workshop.set_script(load("res://ui/garage_workshop.gd")); _model.get_parent().add_child(workshop)
+	_viewport.use_taa=RenderingServer.get_current_rendering_method()=="forward_plus" and not OS.has_feature("mobile")
 	var hood_label:=Label.new();hood_label.name="HoodLabel";hood_label.text="Hood";get_node(ROWS).add_child(hood_label)
 	get_node(ROWS).move_child(hood_label,4)
 	var hood:=OptionButton.new();hood.name="Hood";get_node(ROWS).add_child(hood);get_node(ROWS).move_child(hood,5)
@@ -117,10 +120,12 @@ func open_garage() -> void:
 	_refresh_brands()
 	_refresh_prices()
 	_feedback.text = "Changes apply immediately and save automatically."
+	_back.text = "Back to Street Legacy" if StreetProfile.launch_mode=="garage" and StreetProfile.driver_created else "Back to pause menu"
 	_model.rotation = Vector3.ZERO
 	_orbit_pitch = 0.28
 	_orbit_distance = 7.6
 	_dragging = false
+	_touch_points.clear()
 	_position_camera()
 	_sections.current_tab = 0
 	_show_section(0)
@@ -143,6 +148,7 @@ func _show_section(section: int) -> void:
 		for key in SECTION_CONTROLS[group]:
 			var control=get_node(ROWS+"/"+key)
 			if control is OptionButton: control.disabled=not custom
+	_paint.disabled=not preload("res://vehicles/vehicle_catalog.gd").paint_customization(GameSettings.vehicle_id)
 	get_node(ROWS+"/Hood").visible=section==1 and GameSettings.vehicle_id==11
 	get_node(ROWS+"/HoodLabel").visible=section==1 and GameSettings.vehicle_id==11
 	if GameSettings.vehicle_id==11:
@@ -157,6 +163,7 @@ func _show_section(section: int) -> void:
 	get_node(ROWS+"/SpoilerFinish").disabled=not custom or GameSettings.car_spoiler==0
 	get_node(ROWS+"/BodyLabel").text="KIT PRESET" if GameSettings.vehicle_id==11 else "KIT PRESET / UPPER BODY"
 	if not custom and section>0: get_node(ROWS+"/Description").text="Original pack body, wheels and finish. Visual alterations are disabled for these cars."
+	if GameSettings.vehicle_id==5 and section==2: get_node(ROWS+"/Description").text="Six paint finishes. Factory bodywork, wheels and spoiler."
 	$Frame/Stack/Content/Options.set_deferred("scroll_vertical", 0)
 
 
@@ -246,6 +253,11 @@ func _refresh_summary() -> void:
 
 
 func _on_preview_input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch:
+		if event.pressed and not event.canceled: _touch_points[event.index] = _preview.get_global_transform_with_canvas()*event.position
+		else: _touch_points.erase(event.index)
+		_preview.accept_event(); return
+	if not _touch_points.is_empty(): return
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			_dragging = event.pressed
@@ -260,7 +272,22 @@ func _on_preview_input(event: InputEvent) -> void:
 func _input(event: InputEvent) -> void:
 	if not is_visible_in_tree():
 		_dragging = false
+		_touch_points.clear()
 		return
+	if event is InputEventScreenTouch and (not event.pressed or event.canceled): _touch_points.erase(event.index)
+	if event is InputEventScreenDrag and _touch_points.has(event.index):
+		var previous: Array = _touch_points.values()
+		_touch_points[event.index] = event.position
+		if _touch_points.size()==1:
+			_model.rotate_y(event.relative.x*0.008)
+			_orbit_pitch = clampf(_orbit_pitch+event.relative.y*0.006,0.12,0.85)
+		else:
+			var current: Array = _touch_points.values()
+			var before: float = (previous[0]-previous[1]).length()
+			var after: float = (current[0]-current[1]).length()
+			if before>1 and after>1: _orbit_distance = clampf(_orbit_distance*before/after,5.2,10.0)
+		_position_camera(); get_viewport().set_input_as_handled(); return
+	if not _touch_points.is_empty() and event is InputEventMouse: return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
 		_dragging = false
 	if _dragging and event is InputEventMouseMotion:
@@ -278,4 +305,8 @@ func _position_camera() -> void:
 
 func _update_rendering() -> void:
 	_dragging = false
+	_touch_points.clear()
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if is_visible_in_tree() else SubViewport.UPDATE_DISABLED
+func _notification(what: int) -> void:
+	if what==NOTIFICATION_APPLICATION_FOCUS_OUT:
+		_touch_points.clear(); _dragging = false
