@@ -90,6 +90,8 @@ func _ready() -> void:
 	set_meta("counts",counts)
 	print("CityLife: ",counts)
 func suitable(p: Vector3,road_clearance: float) -> bool:
+	for reserved: Rect2 in get_parent().get_meta("downtown_reserved_spaces",[]):
+		if reserved.grow(4).has_point(Vector2(p.x,p.z)): return false
 	if p.y<0 or absf(p.x-(730+35*sin(p.z/800)))<118: return false
 	var cell:=Vector2i(floori(p.x/32),floori(p.z/32))
 	for x in range(-1,2):

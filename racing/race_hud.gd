@@ -10,6 +10,7 @@ var event_kind:="Street sprint"
 var driver_count:=4
 var target_time:=0.0
 var result_message:=""
+var new_personal_best:=false
 var screen: Control
 var card: PanelContainer
 var readout: Label
@@ -25,10 +26,17 @@ var result_best: Label
 var standings: VBoxContainer
 var retry: Button
 var roam: Button
+var result_position: Label
+var result_status: Label
+var result_award: Label
+var result_scroll: ScrollContainer
+var result_buttons: HBoxContainer
+const STYLE = preload("res://ui/racing_theme.gd")
 func _ready() -> void:
 	layer=15
 	count_sound=AudioStreamPlayer.new();add_child(count_sound);count_sound.volume_db=-13
 	screen=Control.new();screen.name="Screen";add_child(screen)
+	STYLE.apply(screen)
 	screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	screen.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	card=PanelContainer.new();screen.add_child(card)
@@ -57,27 +65,54 @@ func _ready() -> void:
 	countdown.add_theme_constant_override("shadow_offset_y",3)
 	results_overlay=ColorRect.new();screen.add_child(results_overlay)
 	results_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	results_overlay.color=Color(0.01,0.02,0.035,0.86)
+	results_overlay.color=Color(0.006,0.012,0.024,0.91)
 	var center:=Control.new();results_overlay.add_child(center)
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	results_card=PanelContainer.new();center.add_child(results_card)
-	results_card.custom_minimum_size=Vector2(500,0)
-	var result_stack:=_contents(results_card,26)
-	result_stack.add_theme_constant_override("separation",14)
-	result_title=_label(result_stack,"CAPITAL RUN / RESULTS",27)
-	result_time=_label(result_stack,"",23)
+	var result_outer:=_contents(results_card,20)
+	var result_style:=STYLE.box(Color("101d28"),Color("3c5664"),8,1)
+	result_style.border_width_top=4;result_style.border_color=STYLE.GOLD
+	results_card.add_theme_stylebox_override("panel",result_style)
+	result_scroll=ScrollContainer.new();result_outer.add_child(result_scroll)
+	result_scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
+	result_scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL
+	result_scroll.custom_minimum_size.y=80
+	var result_stack:=VBoxContainer.new();result_scroll.add_child(result_stack)
+	result_stack.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	result_stack.add_theme_constant_override("separation",8)
+	var eyebrow:=_label(result_stack,"REVVED   /   RACE RESULTS",15)
+	eyebrow.modulate=STYLE.CYAN;eyebrow.horizontal_alignment=HORIZONTAL_ALIGNMENT_LEFT
+	result_title=_label(result_stack,"CAPITAL RUN",30)
+	result_title.horizontal_alignment=HORIZONTAL_ALIGNMENT_LEFT
+	var hero:=HBoxContainer.new();result_stack.add_child(hero);hero.add_theme_constant_override("separation",22)
+	result_position=_label(hero,"1ST",64);result_position.custom_minimum_size.x=120;result_position.modulate=STYLE.GOLD
+	result_position.autowrap_mode=TextServer.AUTOWRAP_OFF
+	var summary:=VBoxContainer.new();hero.add_child(summary);summary.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	result_status=_label(summary,"VICTORY",23);result_status.horizontal_alignment=HORIZONTAL_ALIGNMENT_LEFT
+	result_time=_label(summary,"",28);result_time.horizontal_alignment=HORIZONTAL_ALIGNMENT_LEFT
 	result_best=_label(result_stack,"",17)
-	result_best.modulate=Color(0.65,0.85,0.96)
+	result_best.horizontal_alignment=HORIZONTAL_ALIGNMENT_LEFT;result_best.modulate=Color("a9bcc9")
+	result_award=_label(result_stack,"",18);result_award.horizontal_alignment=HORIZONTAL_ALIGNMENT_LEFT
+	result_award.modulate=STYLE.CYAN
+	var heading:=HBoxContainer.new();result_stack.add_child(heading)
+	var column:=_label(heading,"CLASSIFICATION",15);column.horizontal_alignment=HORIZONTAL_ALIGNMENT_LEFT
+	column.size_flags_horizontal=Control.SIZE_EXPAND_FILL;column.modulate=Color("8ba2b2")
+	column=_label(heading,"TIME / STATUS",15);column.custom_minimum_size.x=120;column.modulate=Color("8ba2b2")
+	column.autowrap_mode=TextServer.AUTOWRAP_OFF
 	standings=VBoxContainer.new();result_stack.add_child(standings)
-	standings.add_theme_constant_override("separation",12)
-	var buttons:=HBoxContainer.new();result_stack.add_child(buttons)
+	standings.add_theme_constant_override("separation",5)
+	var buttons:=HBoxContainer.new();result_outer.add_child(buttons);result_buttons=buttons
 	buttons.add_theme_constant_override("separation",12)
-	retry=Button.new();buttons.add_child(retry);retry.text="Race again"
-	roam=Button.new();buttons.add_child(roam);roam.text="Free roam"
+	retry=Button.new();buttons.add_child(retry);retry.text="RACE AGAIN"
+	roam=Button.new();buttons.add_child(roam);roam.text="FREE ROAM"
 	for button in [retry,roam]:
-		button.custom_minimum_size=Vector2(210,48)
+		button.clip_text=true;button.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+		button.custom_minimum_size=Vector2(0,50)
 		button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 		button.add_theme_font_size_override("font_size",20)
+	# Keep primary actions outside the scrolling classification on small screens.
+	var caption:=_label(result_outer,"",14);caption.name="ResultsHint";caption.modulate=Color("92a6b5")
+	caption.text="Choose your next move"
 	retry.pressed.connect(func():retry_pressed.emit())
 	roam.pressed.connect(func():
 		if StreetProfile.launch_mode=="career" and StreetProfile.driver_created:StreetProfile.main_menu()
@@ -124,7 +159,7 @@ func racing(position_text: String,time: String,checkpoint: String,section: Strin
 	full_readout=event_title+"   "+position_text+"\n"+time+"   •   "+checkpoint+"\n"+section
 	compact_readout=event_title+"   "+position_text+"\n"+(time+" / %02d:%02d TARGET"%[int(target_time)/60,int(target_time)%60] if target_time>0 else time+"   •   "+checkpoint)
 	_layout_race_card()
-	hint.text="Tap RESET to recover • PAUSE for menu" if touch_enabled() else "R recover   •   Esc pause   •   Q leave race"
+	hint.text="RESET recover  /  PAUSE menu" if touch_enabled() else "R RESET   /   ESC PAUSE   /   Q EXIT"
 	navigation.text=instruction
 func center_text(value: String) -> void:
 	if value!=last_count_text and not value.is_empty():
@@ -134,33 +169,47 @@ func center_text(value: String) -> void:
 	countdown.text=value;countdown.visible=not value.is_empty()
 func show_results(place: int,time: String,best: String,rows: Array,saved: bool) -> void:
 	var was_open:=results_overlay.visible
-	roam.text="EVENT MAP" if StreetProfile.launch_mode=="career" and StreetProfile.driver_created else "Free roam"
+	roam.text=("CONTINUE STORY" if not StreetProfile.pending_story().is_empty() else "STORY MAP") if StreetProfile.launch_mode=="career" and StreetProfile.driver_created else "FREE ROAM"
+	if StreetProfile.launch_mode=="series":roam.text="NEXT ROUND" if StreetProfile.series_round<2 else "FINISH SERIES"
 	card.hide();navigation.hide();countdown.hide();results_overlay.show()
-	result_title.text=event_title+" / FINISHED"
-	result_time.text=("%d / %d    •    %s"%[place,driver_count,time]) if target_time<=0 else result_message+"\n"+time
-	result_best.text=("Best  " if saved else "Session best  ")+best
-	if not StreetProfile.last_award.is_empty(): result_best.text+="\n"+StreetProfile.last_award
+	result_title.text=event_title.to_upper()
+	result_position.text=str(place)+(["ST","ND","RD","TH"][clampi(place-1,0,3)]) if target_time<=0 else ("PASS" if result_message=="TARGET BEATEN" else "RETRY")
+	result_position.modulate=Color("ff897b") if target_time>0 and result_message!="TARGET BEATEN" else (STYLE.GOLD if place==1 or result_message=="TARGET BEATEN" else Color("d4e2eb"))
+	result_status.text=("VICTORY" if place==1 else "RACE COMPLETE") if target_time<=0 else result_message.replace(" / TRY AGAIN","")
+	result_status.modulate=STYLE.GOLD if place==1 and target_time<=0 or result_message=="TARGET BEATEN" else Color("e4edf2")
+	result_time.text="FINISH TIME   "+time
+	result_best.text=("NEW PERSONAL BEST   " if new_personal_best and saved else ("PERSONAL BEST   " if saved else "SESSION BEST   "))+best+"    /    "+event_kind.to_upper()
+	result_award.text="STREET LEGACY / REWARDS\n"+StreetProfile.last_award if StreetProfile.launch_mode=="career" and not StreetProfile.last_award.is_empty() else "PRACTICE SESSION  /  NO CAREER REWARDS"
+	if StreetProfile.launch_mode=="series":result_award.text=StreetProfile.series_summary()
 	for child in standings.get_children():
 		standings.remove_child(child);child.queue_free()
 	for index in range(rows.size()):
-		var row:=HBoxContainer.new();standings.add_child(row)
-		var name_label:=_label(row,"%d   %s"%[index+1,rows[index].name],19)
+		var panel:=PanelContainer.new();standings.add_child(panel)
+		var row_style:=STYLE.box(Color("293529") if rows[index].player else Color("172734"),STYLE.GOLD if rows[index].player else Color.TRANSPARENT,4,1)
+		row_style.content_margin_top=7;row_style.content_margin_bottom=7;panel.add_theme_stylebox_override("panel",row_style)
+		var row:=HBoxContainer.new();panel.add_child(row);row.add_theme_constant_override("separation",12)
+		var rank:=_label(row,"%02d"%[index+1],21);rank.custom_minimum_size.x=30;rank.modulate=STYLE.GOLD if rows[index].player else Color("8ca5b8")
+		var name_label:=_label(row,str(rows[index].name)+( "  /  YOU" if rows[index].player and rows[index].name!="YOU" else ""),19)
 		name_label.horizontal_alignment=HORIZONTAL_ALIGNMENT_LEFT
 		name_label.size_flags_horizontal=Control.SIZE_EXPAND_FILL
-		_label(row,rows[index].time,19)
-		if rows[index].player: row.modulate=Color(1,0.8,0.3)
+		name_label.autowrap_mode=TextServer.AUTOWRAP_OFF;name_label.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+		var timing:=_label(row,rows[index].time,19);timing.custom_minimum_size.x=100
+		if rows[index].player: name_label.modulate=STYLE.GOLD
 	call_deferred("_layout_results")
-	if not was_open: retry.grab_focus()
+	if not was_open:
+		result_scroll.scroll_vertical=0;roam.grab_focus()
 
 func _layout_results() -> void:
 	if not is_instance_valid(results_card):return
-	var desired:=results_card.get_combined_minimum_size()
-	desired.x=maxf(500,desired.x)
-	results_card.size=desired
-	var available:=screen.size-Vector2(24,24)
-	var factor:=minf(1.0,minf(available.x/desired.x,available.y/desired.y))
-	results_card.scale=Vector2.ONE*maxf(.1,factor)
-	results_card.position=(screen.size-desired*factor)*.5
+	var desired:=Vector2(minf(820,screen.size.x-28),minf(720,screen.size.y-28))
+	results_card.scale=Vector2.ONE;results_card.size=desired
+	results_card.position=(screen.size-results_card.size)*.5
+	var small:=screen.size.x<600
+	result_position.add_theme_font_size_override("font_size",40 if small else 64)
+	result_position.custom_minimum_size.x=80 if small else 120
+	result_title.add_theme_font_size_override("font_size",24 if small else 30)
+	result_time.add_theme_font_size_override("font_size",20 if small else 28)
+	for button in [retry,roam]:button.add_theme_font_size_override("font_size",18 if small else 20)
 
 func _layout_race_card() -> void:
 	if not is_instance_valid(readout):return
@@ -173,3 +222,5 @@ func _layout_race_card() -> void:
 	card.offset_top=10 if compact else 18
 	card.offset_bottom=108 if compact else 162
 	card.size=Vector2(288,maxf(98 if compact else 144,card.get_combined_minimum_size().y))
+	if screen.size.x<600:
+		card.offset_left=-screen.size.x+12;card.offset_right=-12;card.offset_top=250;card.size.x=screen.size.x-24

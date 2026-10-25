@@ -1,0 +1,74 @@
+[gd_scene format=3 uid="uid://qtdxcss7dw8w"]
+
+[ext_resource type="Script" uid="uid://cf2u5pay6fnqi" path="res://world/workshop/handbuilt_world.gd" id="1_1jfy6"]
+[ext_resource type="Texture2D" uid="uid://d3erac2im4yp4" path="res://assets/licensed/modern_city_architecture/grass_albedo.jpg" id="2_2tq37"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8tdgt"]
+albedo_color = Color(0.4117647, 0.4509804, 0.3529412, 1)
+albedo_texture = ExtResource("2_2tq37")
+uv1_scale = Vector3(0.3, 0.3, 0.3)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
+
+[sub_resource type="BoxMesh" id="BoxMesh_6qiis"]
+material = SubResource("StandardMaterial3D_8tdgt")
+size = Vector3(512, 0.5, 512)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bgby0"]
+size = Vector3(512, 0.5, 512)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_i7la0"]
+sky_top_color = Color(0.007843138, 0.023529412, 0.0627451, 1)
+sky_horizon_color = Color(0.078431375, 0.13333334, 0.22352941, 1)
+ground_bottom_color = Color(0.007843138, 0.023529412, 0.0627451, 1)
+ground_horizon_color = Color(0.078431375, 0.13333334, 0.22352941, 1)
+sun_curve = 0.0
+
+[sub_resource type="Sky" id="Sky_oahoj"]
+sky_material = SubResource("ProceduralSkyMaterial_i7la0")
+
+[sub_resource type="Environment" id="Environment_fxq3h"]
+background_mode = 2
+sky = SubResource("Sky_oahoj")
+ambient_light_source = 2
+ambient_light_color = Color(0.5686275, 0.6627451, 0.81960785, 1)
+ambient_light_energy = 0.48
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.09019608, 0.13333334, 0.21960784, 1)
+fog_light_energy = 0.5
+fog_density = 0.00045
+
+[node name="HandbuiltCity" type="Node3D" unique_id=1255088955]
+script = ExtResource("1_1jfy6")
+world_title = "My City 001"
+metadata/workshop_world = true
+
+[node name="Roads" type="Node3D" parent="." unique_id=1569610394]
+
+[node name="Buildings" type="Node3D" parent="." unique_id=589001793]
+
+[node name="Props" type="Node3D" parent="." unique_id=1879486336]
+
+[node name="Ground" type="StaticBody3D" parent="." unique_id=2045712640]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+
+[node name="Surface" type="MeshInstance3D" parent="Ground" unique_id=1029181230]
+mesh = SubResource("BoxMesh_6qiis")
+
+[node name="Collision" type="CollisionShape3D" parent="Ground" unique_id=1514859260]
+shape = SubResource("BoxShape3D_bgby0")
+
+[node name="PlayerStart" type="Marker3D" parent="." unique_id=331040166]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 16)
+
+[node name="NightEnvironment" type="WorldEnvironment" parent="." unique_id=407926256]
+environment = SubResource("Environment_fxq3h")
+
+[node name="Moon" type="DirectionalLight3D" parent="." unique_id=1317992787]
+transform = Transform3D(0.8480481, 0.32625088, -0.4175821, 0, 0.7880108, 0.6156615, 0.52991927, -0.5221106, 0.668271, 0, 0, 0)
+light_color = Color(0.6509804, 0.7372549, 0.9019608, 1)
+light_energy = 0.42
+shadow_enabled = true
+directional_shadow_max_distance = 160.0

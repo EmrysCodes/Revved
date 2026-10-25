@@ -11,6 +11,11 @@ func _ready() -> void:
 		add_child(load("res://world/eastside/frontage.tscn").instantiate())
 	if preload("res://world/hartford/modern_art.gd").available():
 		var modern := Node3D.new(); modern.set_script(load("res://world/hartford/modern_art.gd")); add_child(modern)
+	if ResourceLoader.exists("res://world/hartford/continuous_streets.scn"):
+		add_child(load("res://world/hartford/continuous_streets.scn").instantiate())
+	if ResourceLoader.exists("res://world/hartford/city_streetwall.scn"):
+		add_child(load("res://world/hartford/city_streetwall.scn").instantiate())
+	var detail := Node3D.new(); detail.set_script(load("res://world/hartford/downtown_detail.gd")); add_child(detail)
 	call_deferred("_add_city_life")
 	call_deferred("_add_ambience")
 	call_deferred("_add_population")

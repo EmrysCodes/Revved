@@ -27,7 +27,7 @@ func run() -> void:
 	var dense:=GUIDANCE.maneuvers(bend,bend_distances,bend.size()-1)
 	check(dense.size()==2 and dense[0].kind=="right","Sub-metre junction samples retain the actual turn")
 	root.get_node("StreetProfile").touch_mode=1
-	var city:Node3D=load("res://scenes/hartford_district.tscn").instantiate();city.set_meta("disable_population",true);root.add_child(city)
+	var city:Node3D=load("res://world/handbuilt/plattsburgh_region.scn").instantiate();city.set_meta("disable_population",true);root.add_child(city)
 	for i in range(14):await physics_frame
 	city.car.set_physics_process(false)
 	var event:Node=city.get_node("CityRace");event.start_race();event.set_physics_process(false)

@@ -8,12 +8,12 @@ func _initialize() -> void:
 	call_deferred("run")
 func run() -> void:
 	var profile=root.get_node("StreetProfile")
+	root.get_node("GameSettings").set_vehicle(5,false);root.get_node("GameSettings").set_performance(0,0,0,false)
 	profile.launch_mode="single";profile.selected_event="capital_run"
-	var city:Node3D=load("res://scenes/hartford_district.tscn").instantiate()
-	city.set_meta("offline_build",true);root.add_child(city)
-	city.add_child(load("res://world/eastside/frontage.tscn").instantiate())
-	var initial:Node=load("res://racing/capital_run.tscn").instantiate();initial.name="CityRace";city.add_child(initial)
+	var city:Node3D=load("res://world/handbuilt/plattsburgh_region.scn").instantiate()
+	city.set_meta("offline_build",true);city.set_meta("disable_population",true);root.add_child(city)
 	for i in range(14):await physics_frame
+	for agent:CharacterBody3D in city.get_node("CoastLife").agents:agent.set_physics_process(false);agent.collision_layer=0;agent.hide()
 	var car:CharacterBody3D=city.car;car.set_physics_process(false)
 	for definition:Dictionary in C.EVENTS:
 		if not OS.get_cmdline_user_args().is_empty():
@@ -34,14 +34,16 @@ func run() -> void:
 				if not car.is_on_floor():air+=1
 			else:car.call("_step_motion",STEP,0,0,true,false)
 			event.call("_physics_process",STEP)
-			if frame%8==0:await physics_frame
+			await physics_frame
 			var gate:int=event.next_checkpoint.get(car.get_instance_id(),0)
 			if gate!=previous_gate:previous_gate=gate;stalled=0
 			else:stalled+=1
 			if event.state==event.Phase.RESULTS:finished=true;break
 			if frame%600==0:print("CHECK ",definition.id," frame=",frame," gate=",gate," cursor=",cursor)
 			if stalled>4200:
-				for i in range(car.get_slide_collision_count()):print("BLOCKER ",car.get_slide_collision(i).get_collider().get_path())
+				for i in range(car.get_slide_collision_count()):print("BLOCKER ",car.get_slide_collision(i).get_collider().get_path()," normal=",car.get_slide_collision(i).get_normal()," point=",car.get_slide_collision(i).get_position())
+				print("STALLED yaw=",car.rotation.y," target=",event.route[mini(cursor+5,event.route.size()-1)]," distance=",PILOT.command(car,event.route,event.distances,cursor,30,0).distance," recoveries=",event.player_recoveries," locked=",car.controls_locked," floor=",car.is_on_floor())
+				print("DRIVE INPUT ",PILOT.command(car,event.route,event.distances,cursor,30,0)," velocity=",car.velocity," step=",car.get_meta("step_probe","none"))
 				break
 		print("DRIVE ",definition.id," finished=",finished," gate=",previous_gate,"/",event.checkpoint_indices.size()," time=",snappedf(event.elapsed,.1)," air=",air," pos=",car.position," cursor=",cursor)
 		if not finished or air>240:failures.append(definition.id)

@@ -1,5 +1,5 @@
 extends Control
-const CITY := "res://scenes/hartford_district.tscn"
+const CITY := "res://world/handbuilt/plattsburgh_region.scn"
 const TIPS := ["The handbrake helps rotate the car into a slide.","The minimap follows nearby streets. Street Legacy has the full event map.","Garage brands trade strengths within the same upgrade level.","Drag the car in the garage to rotate it. Scroll to zoom."]
 var progress: ProgressBar
 var status: Label
@@ -24,12 +24,13 @@ func _ready() -> void:
 	stack.add_theme_constant_override("separation",18)
 	logo = Label.new(); stack.add_child(logo); logo.text = "REVVED"; logo.add_theme_font_size_override("font_size",72)
 	logo.add_theme_color_override("font_color",Color("ffd05d"))
-	heading = Label.new(); stack.add_child(heading); heading.text = "HARTFORD AFTER DARK"; heading.add_theme_font_size_override("font_size",28)
+	heading = Label.new(); stack.add_child(heading); heading.text = "CHAMPLAIN COAST AFTER DARK"; heading.add_theme_font_size_override("font_size",28)
 	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var profile := get_tree().root.get_node("StreetProfile")
 	if profile.launch_mode=="garage": heading.text = "STREET LEGACY / GARAGE"
-	elif profile.launch_mode in ["career","single"]:
+	elif profile.launch_mode in ["career","single","series"]:
 		heading.text = preload("res://core/career_catalog.gd").event(profile.selected_event).name.to_upper()
+		if profile.launch_mode=="series":heading.text="ROUND %d / "%[profile.series_round+1]+heading.text
 	status = Label.new(); stack.add_child(status); status.text = "Opening the city…"
 	progress = ProgressBar.new(); stack.add_child(progress); progress.custom_minimum_size.y = 12; progress.show_percentage = false
 	tip = Label.new(); stack.add_child(tip); tip.custom_minimum_size.x = 420; tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

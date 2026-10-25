@@ -12,6 +12,7 @@ func wait_for_city() -> void:
 func run() -> void:
 	var profile:=root.get_node("StreetProfile")
 	profile.driver_background=0;profile.driver_created=false;profile.path="res://tests/mode-career.tmp"
+	profile.story_seen["capital_run_before"]=true
 	profile.launch("single")
 	await wait_for_city()
 	check(current_scene.get_node("CityRace").is_active(),"Single race launches directly to grid")

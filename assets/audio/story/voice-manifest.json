@@ -1,0 +1,5 @@
+{
+  "voice": "Microsoft Zira Desktop",
+  "description": "Synthetic prototype dialogue; all characters use the available local voice with rate variation. Original Last Light screenplay. No actor imitation.",
+  "provider": "Windows offline System.Speech"
+}

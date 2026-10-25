@@ -25,6 +25,69 @@ var driver_presentation:=0
 var driver_portrait:=0
 var driver_background:=0
 var return_to_legacy:=false
+const STORY=preload("res://core/story_catalog.gd")
+var story_seen:Dictionary={}
+var story_request:Dictionary={}
+var story_voice:=true
+var story_auto:=true
+var dialogue_volume:=0.9
+var music_volume:=0.55
+var story_save_error:=""
+var story_setback_pending:=false
+const SERIES=preload("res://core/challenge_series.gd")
+var series_id:=-1
+var series_round:=0
+var series_results:Array[Dictionary]=[]
+var series_report:=""
+var series_active:=false
+var last_backup_path:=""
+func new_story()->Error:
+	# The menu asks for confirmation. Preserve the old profile before replacing it.
+	var backup:=path+"."+str(Time.get_unix_time_from_system()).replace(".","-")+".bak"
+	if FileAccess.file_exists(path):
+		var copied:=DirAccess.copy_absolute(ProjectSettings.globalize_path(path),ProjectSettings.globalize_path(backup))
+		if copied!=OK:return copied
+		last_backup_path=backup
+	var defaults:Dictionary={"driver_created":false,"driver_name":"Alex Mercer","driver_presentation":0,"driver_portrait":0,"driver_background":0,"event_results":{},"credits":5000,"purchased_tiers":[0,0,0],"career_finishes":0,"career_wins":0,"reputation":0,"last_award":"","selected_event":"capital_run","story_seen":{},"story_setback_pending":false}
+	var previous:Dictionary={}
+	for key:String in defaults:
+		var value:Variant=get(key)
+		previous[key]=value.duplicate(true) if value is Array or value is Dictionary else value
+		if key=="purchased_tiers":purchased_tiers.assign(defaults[key])
+		else:set(key,defaults[key])
+	var error:=save()
+	if error!=OK:
+		for key:String in previous:set(key,previous[key])
+		return error
+	story_request.clear();return_to_legacy=false;series_active=false;series_report=""
+	return OK
+func begin_series(index:int)->void:
+	if index not in range(SERIES.SERIES.size()):return
+	series_id=index;series_round=0;series_results.clear();series_report="";series_active=true
+	launch_event(SERIES.SERIES[index].events[0],"series")
+func record_series(place:int,seconds:float)->void:
+	if launch_mode!="series" or series_id<0:return
+	var result:Dictionary={"place":clampi(place,1,4),"seconds":seconds,"points":SERIES.points(place),"event":selected_event}
+	if series_results.size()>series_round:series_results[series_round]=result
+	else:series_results.append(result)
+func series_score()->int:
+	var score:=0
+	for result in series_results:score+=int(result.points)
+	return score
+func series_summary()->String:
+	if series_id<0:return ""
+	var score:=series_score()
+	return "%s / ROUND %d OF 3\n%d POINTS / GOLD 24 • SILVER 18 • BRONZE 12\nNO CAREER REWARDS"%[SERIES.SERIES[series_id].name,series_round+1,score]
+func advance_series()->void:
+	if series_id<0 or series_results.size()<=series_round:return
+	if series_round<2:
+		series_round+=1;launch_event(SERIES.SERIES[series_id].events[series_round],"series")
+	else:
+		series_active=false
+		series_report=SERIES.SERIES[series_id].name+" / "+SERIES.medal(series_score())+" / %d POINTS"%series_score()
+		get_tree().change_scene_to_file("res://ui/front_end/main_menu.tscn")
+func resume_series()->void:
+	if series_active and series_id>=0:launch_event(SERIES.SERIES[series_id].events[series_round],"series")
 func _ready() -> void:
 	var file:=ConfigFile.new()
 	if file.load(path)==OK:
@@ -53,6 +116,21 @@ func _ready() -> void:
 		driver_portrait=clampi(int(file.get_value("driver","portrait",0)),0,9)
 		driver_background=clampi(int(file.get_value("driver","background",0)),0,IDENTITY.BACKGROUNDS.size()-1)
 		if driver_name.is_empty(): driver_created=false
+		story_voice=bool(file.get_value("story","voice",true))
+		story_setback_pending=bool(file.get_value("story","setback",false))
+		story_auto=bool(file.get_value("story","auto",true))
+		dialogue_volume=clampf(float(file.get_value("story","volume",0.9)),0,1)
+		music_volume=clampf(float(file.get_value("audio","music",0.55)),0,1)
+		var saved_seen:Variant=file.get_value("story","seen",{})
+		if saved_seen is Dictionary:
+			for key in STORY.data().scenes:
+				if saved_seen.get(key,false):story_seen[key]=true
+		# Existing wins are kept. Avoid replaying hours of old setup on a migrated save.
+		if int(file.get_value("story","revision",0))<1 and CAMPAIGN.wins(event_results)>0:
+			story_seen["prologue"]=true
+			for item in CAMPAIGN.EVENTS:
+				if CAMPAIGN.won(event_results,item.id):
+					story_seen[item.id+"_before"]=true;story_seen[item.id+"_after"]=true
 	apply_display()
 func save() -> Error:
 	var file:=ConfigFile.new()
@@ -75,6 +153,13 @@ func save() -> Error:
 	file.set_value("driver","presentation",driver_presentation)
 	file.set_value("driver","portrait",driver_portrait)
 	file.set_value("driver","background",driver_background)
+	file.set_value("story","revision",1)
+	file.set_value("story","setback",story_setback_pending)
+	file.set_value("story","seen",story_seen)
+	file.set_value("story","voice",story_voice)
+	file.set_value("story","auto",story_auto)
+	file.set_value("story","volume",dialogue_volume)
+	file.set_value("audio","music",music_volume)
 	return file.save(path)
 func create_driver(value: String,presentation: int,portrait: int,background: int) -> Error:
 	if driver_created: return ERR_ALREADY_EXISTS
@@ -106,8 +191,9 @@ func apply_audio() -> void:
 		AudioServer.set_bus_mute(ambience_bus,ambience_volume<=0)
 func record_finish(place: int,recoveries:=0,event_id:="",seconds:=0.0,successful:=true,route_version:=1) -> void:
 	if launch_mode!="career": return
+	if not event_id.is_empty() and not CAMPAIGN.unlock_reason(event_id,event_results).is_empty():return
 	career_finishes+=1
-	if place==1: career_wins+=1
+	if place==1 and successful: career_wins+=1
 	var base: int=[250,150,100,50][clampi(place-1,0,3)]
 	var earned:=roundi(base*IDENTITY.multiplier(driver_background,place,recoveries))
 	reputation+=earned
@@ -116,6 +202,7 @@ func record_finish(place: int,recoveries:=0,event_id:="",seconds:=0.0,successful
 		var item:Dictionary=CAMPAIGN.event(event_id)
 		var result:Dictionary=event_results.get(event_id,{"wins":0,"attempts":0,"best":0.0,"place":4})
 		var first_win:bool=int(result.wins)==0 and place==1 and successful
+		story_setback_pending=not (place==1 and successful)
 		if int(result.get("route_version",1))!=route_version:result.best=0.0
 		result.route_version=route_version
 		result.attempts=int(result.attempts)+1
@@ -126,8 +213,11 @@ func record_finish(place: int,recoveries:=0,event_id:="",seconds:=0.0,successful
 		var payout:int=roundi(float(item.cash)*(1.0 if first_win else (.35 if successful and place==1 else .12)))
 		credits+=payout
 		last_award+="\n+%s CR%s"%[str(payout)," / FIRST WIN" if first_win else ""]
-		if first_win and event_id=="capitol_crown":last_award+="\nEASTSIDE / FOUNDERS UNLOCKED"
-		if first_win and event_id=="eastside_crown":last_award+="\nTWO DISTRICTS / YOUR LEGACY CONTINUES"
+		if first_win and event_id=="capitol_crown":last_award+="\nVALCOUR / CHAMPLAIN COAST UNLOCKED"
+		if first_win and event_id=="eastside_crown" and CAMPAIGN.complete(event_results):last_award+="\nLAST LIGHT / STREET LEGACY COMPLETE"
+		elif first_win:
+			var next_id:=CAMPAIGN.next_event(event_results)
+			if not next_id.is_empty():last_award+="\nNEXT / "+CAMPAIGN.event(next_id).name.to_upper()
 	if driver_background!=0: last_award+="\n"+IDENTITY.BACKGROUNDS[driver_background].name
 	if save()!=OK: last_award+=" • save failed; session only"
 func select_event(id:String) -> bool:
@@ -151,12 +241,45 @@ func launch_event(id:String,mode:="career") -> void:
 	if mode=="career" and not CAMPAIGN.unlock_reason(id,event_results).is_empty():return
 	launch(mode)
 func launch(mode: String) -> void:
+	if mode=="career":
+		if not CAMPAIGN.unlock_reason(selected_event,event_results).is_empty():return
+		var prelude:=selected_event+"_before"
+		if not story_seen.get(prelude,false):
+			play_story(prelude,"race");return
 	launch_mode=mode;last_award=""
 	get_tree().paused=false
 	if mode in ["career","legacy_roam","garage"] and driver_created:
 		GameSettings.set_performance(mini(GameSettings.engine_level,purchased_tiers[0]),mini(GameSettings.brakes_level,purchased_tiers[1]),mini(GameSettings.tires_level,purchased_tiers[2]),false)
 	save()
 	get_tree().change_scene_to_file("res://ui/front_end/loading_screen.tscn")
+func pending_story()->String:
+	if not driver_created:return ""
+	if not story_seen.get("prologue",false):return "prologue"
+	for item in CAMPAIGN.EVENTS:
+		if CAMPAIGN.won(event_results,item.id) and not story_seen.get(item.id+"_after",false):return item.id+"_after"
+	if CAMPAIGN.complete(event_results) and not story_seen.get("epilogue",false):return "epilogue"
+	if story_setback_pending:return "setback"
+	return ""
+func play_story(key:String,destination:="hub",replay:=false)->void:
+	if STORY.scene(key).is_empty():return
+	if replay and not story_seen.get(key,false):return
+	story_request={"key":key,"destination":destination,"replay":replay}
+	get_tree().paused=false
+	get_tree().change_scene_to_file("res://ui/story/story_scene.tscn")
+func finish_story()->bool:
+	if story_request.is_empty():return false
+	var key:String=story_request.key
+	if not story_request.get("replay",false):
+		var old:Dictionary=story_seen.duplicate();var old_setback:=story_setback_pending;story_seen[key]=true
+		if key=="setback":story_setback_pending=false
+		var error:=save()
+		if error!=OK:
+			story_seen=old;story_setback_pending=old_setback;story_save_error="Could not save the story. Check available storage and retry.";return false
+	var destination:String=story_request.get("destination","hub")
+	story_request.clear();story_save_error=""
+	if destination=="race":launch("career")
+	else:get_tree().change_scene_to_file("res://ui/legacy/legacy_hub.tscn")
+	return true
 func main_menu() -> void:
 	return_to_legacy=launch_mode in ["career","legacy_roam","garage"] and driver_created
 	get_tree().paused=false

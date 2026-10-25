@@ -5,6 +5,7 @@ func check(value: bool,message: String) -> void:
 func run() -> void:
 	var profile:=root.get_node("StreetProfile")
 	profile.path="res://tests/driver-test.tmp";profile.driver_created=false
+	profile.event_results={}
 	var creator: Control=load("res://ui/legacy/create_driver.tscn").instantiate();root.add_child(creator)
 	creator.name_input.text="  ";creator.accept_identity()
 	check(creator.stage==0 and not creator.error_label.text.is_empty(),"Blank names rejected")
@@ -33,11 +34,12 @@ func run() -> void:
 	check(profile.reputation==275,"Clean-run bonus applied")
 	profile.record_finish(1,1);check(profile.reputation==500,"Recovery shortfall applied")
 	creator.queue_free();await process_frame
+	profile.story_seen={"prologue":true}
 	var hub: Control=load("res://ui/legacy/legacy_hub.tscn").instantiate();root.add_child(hub)
 	for i in range(4): await process_frame
 	check(hub.map.markers.size()==18 and not hub.start.disabled,"City map contains event markers and playable sprint")
 	hub.select_event(9);check(hub.start.disabled,"Eastside requires downtown final")
-	hub.select_event(1);check(not hub.start.disabled,"Opening downtown events are playable")
+	hub.select_event(1);check(hub.start.disabled,"Second story episode requires the first win")
 	hub.select_event(0);hub.map.zoom=2;hub.map.pan=Vector2(20,30);hub.map.refresh();hub.map.reset_view()
 	check(hub.map.zoom==1 and hub.map.pan==Vector2.ZERO,"Map reset restores pan and zoom")
 	for resolution in [Vector2i(640,360),Vector2i(1280,720),Vector2i(2560,1080)]:
@@ -46,7 +48,10 @@ func run() -> void:
 		check(root.get_visible_rect().encloses(hub.map.get_global_rect()),"Career map fits viewport "+str(resolution))
 	hub.queue_free();await process_frame
 	profile.launch("garage")
-	for i in range(8): await process_frame
+	var began:=Time.get_ticks_msec()
+	while not paused:
+		check(Time.get_ticks_msec()-began<120000,"Career garage finishes loading")
+		await process_frame
 	var pause_menu: CanvasLayer=current_scene.car.get_node("PauseMenu")
 	check(paused and pause_menu.get_node("Garage").visible,"Career garage opens")
 	pause_menu.call("_close_garage")

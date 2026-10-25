@@ -34,6 +34,8 @@ func drive(car: CharacterBody3D,path: PackedVector3Array,label: String) -> void:
 		await physics_frame
 	print("DRIVE ",label," finished ",finished," air ",air," position ",car.position)
 	if not finished or air>=100:
+		for i in range(car.get_slide_collision_count()):
+			print("BLOCKING COLLISION: ",car.get_slide_collision(i).get_collider().get_path())
 		drive_failed=true
 		push_error("Driving route failed: "+label)
 		quit(1)

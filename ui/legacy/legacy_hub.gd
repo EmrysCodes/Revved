@@ -14,10 +14,15 @@ var mission_title:Label
 var mission_meta:Label
 var chapter_label:Label
 var progress_label:Label
+var continue_button:Button
+var story_title:Label
 func _ready() -> void:
 	STYLE.apply(self)
 	if not StreetProfile.driver_created:
 		get_tree().call_deferred("change_scene_to_file","res://ui/legacy/create_driver.tscn");return
+	var pending:String=StreetProfile.pending_story()
+	if not pending.is_empty():
+		StreetProfile.call_deferred("play_story",pending);return
 	var bg:=ColorRect.new();add_child(bg);bg.color=STYLE.INK;bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var margin:=MarginContainer.new();add_child(margin);margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left","right","top","bottom"]:margin.add_theme_constant_override("margin_"+side,20)
@@ -29,6 +34,14 @@ func _ready() -> void:
 	identity.text="STREET LEGACY / "+StreetProfile.driver_name.to_upper()+"\n"+IDENTITY.BACKGROUNDS[StreetProfile.driver_background].name+"  •  REP %d  /  %s CR"%[StreetProfile.reputation,str(StreetProfile.credits)]
 	identity.add_theme_font_size_override("font_size",21);identity.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	make_button(header,"GARAGE",func():StreetProfile.launch("garage"))
+	var narrative:=PanelContainer.new();stack.add_child(narrative)
+	narrative.add_theme_stylebox_override("panel",STYLE.box(Color("192b35"),STYLE.GOLD,6,1))
+	var narrative_row:=HBoxContainer.new();narrative.add_child(narrative_row)
+	story_title=Label.new();narrative_row.add_child(story_title);story_title.size_flags_horizontal=Control.SIZE_EXPAND_FILL;story_title.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;story_title.add_theme_font_size_override("font_size",19)
+	var next_id:String=CAMPAIGN.next_event(StreetProfile.event_results)
+	story_title.text="LAST LIGHT / %02d OF 18 WINS\n"%CAMPAIGN.wins(StreetProfile.event_results)+(CAMPAIGN.event(next_id).name.to_upper() if not next_id.is_empty() else "STORY COMPLETE / THE DOOR STAYS OPEN")
+	continue_button=make_button(narrative_row,"CONTINUE STORY" if not next_id.is_empty() else "CRUISE",continue_story)
+	continue_button.grab_focus()
 	var tabs:=HBoxContainer.new();stack.add_child(tabs)
 	for chapter in range(2):
 		var index:=chapter
@@ -50,14 +63,16 @@ func _ready() -> void:
 	make_button(column,"GARAGE / BUILD YOUR CAR",func():StreetProfile.select_event(CAMPAIGN.EVENTS[selected_event].id);StreetProfile.launch("garage"))
 	make_button(column,"CRUISE / EXPLORE THE CITY",func():StreetProfile.select_event(CAMPAIGN.EVENTS[selected_event].id);StreetProfile.launch("legacy_roam"))
 	make_button(column,"DRIVER CARD",driver_card)
+	make_button(column,"STORY JOURNAL / SCENE REPLAY",story_archive)
 	make_button(column,"RESET MAP VIEW",func():map.reset_view())
 	make_button(column,"← MAIN MENU",main_menu)
 	progress_label=Label.new();stack.add_child(progress_label);progress_label.add_theme_font_size_override("font_size",13);progress_label.modulate=Color("99b3c1");progress_label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	body.resized.connect(layout_body);layout_body()
 	var index:=0
+	var initial_id:String=next_id if not next_id.is_empty() else StreetProfile.selected_event
 	for i in range(CAMPAIGN.EVENTS.size()):
-		if CAMPAIGN.EVENTS[i].id==StreetProfile.selected_event:index=i
-	select_event(index)
+		if CAMPAIGN.EVENTS[i].id==initial_id:index=i
+	map.focus_chapter(CAMPAIGN.EVENTS[index].chapter);select_event(index)
 func layout_body() -> void:
 	if body.size.x>=850:
 		map.position=Vector2.ZERO;map.size=Vector2(body.size.x-330,body.size.y)
@@ -82,14 +97,29 @@ func select_event(index:int) -> void:
 	mission_meta.text=event.kind.to_upper()+"  /  "+GameSettings.format_distance(float(data.get("length",0)))+"\n%d LAPS  •  %d RIVALS  •  %d CR FIRST WIN"%[event.laps,event.rivals,event.cash]
 	var reason:String=CAMPAIGN.unlock_reason(event.id,StreetProfile.event_results)
 	var result:Dictionary=StreetProfile.event_results.get(event.id,{})
-	details.text=event.brief+"\n\n"+("EVENT WON / Replay for a smaller reward." if CAMPAIGN.won(StreetProfile.event_results,event.id) else ("AVAILABLE / Win to build your reputation." if reason.is_empty() else "LOCKED / "+reason))
+	var beat:Dictionary=StreetProfile.STORY.scene(event.id+"_before")
+	details.text="EPISODE %02d / %s\n\n"%[selected_event+1,beat.get("title",event.name)]+event.brief+"\n\n"+("EVENT WON / Replay for a smaller reward." if CAMPAIGN.won(StreetProfile.event_results,event.id) else ("NEXT IN THE STORY / Win to advance." if reason.is_empty() else "LOCKED / "+reason))
 	if result.get("best",0)>0 and int(result.get("route_version",1))==int(data.get("version",1)):details.text+="\nPersonal best: %02d:%05.2f"%[int(result.best)/60,fmod(float(result.best),60)]
 	if event.rivals==0 and data.has("target_seconds"):details.text+="\nTarget: %02d:%02d"%[int(data.target_seconds)/60,int(data.target_seconds)%60]
-	start.disabled=not reason.is_empty() or data.is_empty();start.text="RACE EVENT" if not start.disabled else "EVENT LOCKED"
+	start.disabled=not reason.is_empty() or data.is_empty();start.text=("REPLAY RACE" if CAMPAIGN.won(StreetProfile.event_results,event.id) else "START STORY EVENT") if not start.disabled else "EVENT LOCKED"
 	map.selected=selected_event;map.refresh()
 	var wins:int=CAMPAIGN.chapter_wins(StreetProfile.event_results,event.chapter)
-	progress_label.text="%s  /  %d OF 9 EVENTS WON  •  2 OF 4 DISTRICTS BUILT"%[chapter.name,wins]
-	if CAMPAIGN.complete(StreetProfile.event_results):progress_label.text="BOTH DISTRICT CHAPTERS COMPLETE / REPLAY, REFINE YOUR BUILD & EXPLORE"
+	progress_label.text="%s  /  %d OF 9 EVENTS WON  •  LINEAR STORY / PRACTICE ANY EVENT WITHOUT REWARDS"%[chapter.name,wins]
+	if CAMPAIGN.complete(StreetProfile.event_results):progress_label.text="LAST LIGHT COMPLETE / REPLAY THE STORY JOURNAL, REFINE YOUR BUILD & EXPLORE"
+func continue_story()->void:
+	var id:String=CAMPAIGN.next_event(StreetProfile.event_results)
+	if id.is_empty():StreetProfile.launch("legacy_roam")
+	else:StreetProfile.launch_event(id,"career")
+func story_archive()->void:
+	var dialog:=AcceptDialog.new();add_child(dialog);dialog.title="LAST LIGHT / STORY JOURNAL";dialog.ok_button_text="BACK TO MAP"
+	var scroll:=ScrollContainer.new();dialog.add_child(scroll);scroll.custom_minimum_size=Vector2(minf(600,size.x-70),minf(450,size.y-100));scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
+	var entries:=VBoxContainer.new();scroll.add_child(entries);entries.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	var introduction:=Label.new();entries.add_child(introduction);introduction.text="An independent garage. Two estranged crews. One week to keep the door open.\nReplay watched scenes without changing progress or rewards.\nVoices are an offline synthetic prototype performance.";introduction.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	for key:String in StreetProfile.STORY.data().scenes:
+		if not StreetProfile.story_seen.get(key,false):continue
+		var scene_key:=key
+		make_button(entries,StreetProfile.STORY.scene(key).title,func():dialog.queue_free();StreetProfile.play_story(scene_key,"hub",true))
+	dialog.confirmed.connect(dialog.queue_free);dialog.canceled.connect(dialog.queue_free);dialog.popup_centered()
 func race_selected() -> void:
 	if not start.disabled:StreetProfile.launch_event(CAMPAIGN.EVENTS[selected_event].id,"career")
 func driver_card() -> void:

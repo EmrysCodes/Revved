@@ -24,6 +24,7 @@ func layout() -> void:
 	var width:=minf(wide-24,clampf(wide*.46,310,590))
 	offset_left=-width*.5;offset_right=width*.5;offset_top=16;offset_bottom=188
 	if wide<1200:offset_top=122;offset_bottom=240
+	if wide<600:offset_top=118;offset_bottom=238
 	queue_redraw()
 func bind_race(value:Node) -> void:
 	event=value;turns=GUIDANCE.maneuvers(event.route,event.distances,event.finish_index)

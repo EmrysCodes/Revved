@@ -60,7 +60,7 @@ func _ready() -> void:
 	distances=PackedFloat64Array(data.distances)
 	checkpoint_indices=PackedInt32Array(data.checkpoints)
 	sections=data.sections;length=data.length;finish_index=data.finish_index
-	entry_position=route[0] if event_id!="capital_run" else player.global_position
+	entry_position=route[0] if event_id!="capital_run" or route_version>=100 else player.global_position
 	saved_roam_transform=player.global_transform;saved_collision_mask=player.collision_mask
 	var config:=ConfigFile.new()
 	if config.load(best_path)==OK:
@@ -71,7 +71,10 @@ func _ready() -> void:
 	hud.bind_navigation(self)
 	player.reset_to_spawn.connect(_on_player_reset)
 	hud.retry_pressed.connect(func():start_race(true))
-	hud.roam_pressed.connect(exit_to_free_roam)
+	hud.roam_pressed.connect(func():
+		if StreetProfile.launch_mode=="career" and StreetProfile.driver_created:StreetProfile.main_menu()
+		elif StreetProfile.launch_mode=="series":StreetProfile.advance_series()
+		else:exit_to_free_roam())
 	player.get_node("PauseMenu").bind_city_race(self)
 	_refresh_markers();_update_ui()
 func is_running() -> bool:
@@ -102,9 +105,11 @@ func start_race(retry:=false) -> void:
 	next_checkpoint.clear();progress.clear();previous_positions.clear();finish_times.clear()
 	elapsed=0;countdown_remaining=3;recovery_remaining=0;go_remaining=0;player_recoveries=0
 	player.controls_locked=true;player.collision_mask=saved_collision_mask|2
-	place_car(player,0,-2.2)
+	place_car(player,0,-1.3 if route_version>=100 else -2.2)
 	_register(player)
 	var names: Array=["MARA","JAX","NOVA"] if definition_chapter()==0 else ["INEZ","LUCA","REY"]
+	if StreetProfile.launch_mode=="series":names=["MARA","INEZ","JADE"]
+	elif event_id=="eastside_crown":names=["JADE","INEZ","MARA"]
 	var colors: Array[Color]=[Color(0.7,0.02,0.025),Color(0.95,0.56,0.015),Color(0.8,0.84,0.88)]
 	for i in range(rival_count):
 		var rival: CharacterBody3D=CAR_SCENE.instantiate()
@@ -113,7 +118,7 @@ func start_race(retry:=false) -> void:
 		rival.is_player=false
 		rival.get_node("Visuals/S64Compact").vehicle_override=1+(i+definition_chapter()*4)%10 if preload("res://vehicles/vehicle_catalog.gd").available(1) else 0
 		rival.cruise_speed=30.0+float(preload("res://core/career_catalog.gd").event(event_id).tier)*3+float(i)
-		rival.lane_offset=[2.2,-2.2,0.0][i]
+		rival.lane_offset=([.65,-.65,0.0] if route_version>=100 else [2.2,-2.2,0.0])[i]
 		rival.collision_layer=2;rival.collision_mask=7
 		rival.align_to_slopes=true;rival.floor_snap_length=0.6;rival.floor_constant_speed=true
 		add_child(rival);opponents.append(rival)
@@ -220,7 +225,9 @@ func _finish_player() -> void:
 	var time: float=finish_times[player.get_instance_id()]
 	var success:bool=target_time<=0 or time<=target_time
 	StreetProfile.record_finish(player_place() if success else 4,player_recoveries,event_id,time,success,route_version)
+	StreetProfile.record_series(player_place(),time)
 	hud.result_message="TARGET BEATEN" if target_time>0 and success else ("TARGET MISSED / TRY AGAIN" if target_time>0 else "")
+	hud.new_personal_best=time<best_time
 	if time<best_time:
 		best_time=time
 		var config:=ConfigFile.new();config.load(best_path)

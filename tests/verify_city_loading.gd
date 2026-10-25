@@ -17,7 +17,7 @@ func run() -> void:
 		check(current_scene!=null and current_scene.name!="LoadingCity","Loading completes: "+mode)
 		if current_scene and current_scene.name!="LoadingCity":
 			for i in range(18): await physics_frame
-			check(current_scene.has_meta("modern_city_buildings"),"Normal updated city is the destination: "+mode)
+			check(current_scene.has_meta("finish_version"),"Finished regional map is the destination: "+mode)
 			if mode=="single": check(current_scene.get_node("CityRace").is_active(),"Practice race starts after load")
 			elif mode=="garage": check(paused and current_scene.car.get_node("PauseMenu/Garage").visible,"Career garage opens after load")
 		paused = false

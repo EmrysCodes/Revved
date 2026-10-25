@@ -28,6 +28,10 @@ func _ready() -> void:
 	layout_buttons()
 func snapshot(control: Control) -> Array:
 	return [control.anchor_left,control.anchor_top,control.anchor_right,control.anchor_bottom,control.offset_left,control.offset_top,control.offset_right,control.offset_bottom]
+func bind_world(world:Node)->void:
+	city=world;map_control=world.get_node_or_null("CityHUD/Screen/Map")
+	if is_instance_valid(map_control):old_map=snapshot(map_control)
+	layout_buttons()
 func restore(control: Control,values: Array) -> void:
 	control.anchor_left=values[0];control.anchor_top=values[1];control.anchor_right=values[2];control.anchor_bottom=values[3]
 	control.offset_left=values[4];control.offset_top=values[5];control.offset_right=values[6];control.offset_bottom=values[7]

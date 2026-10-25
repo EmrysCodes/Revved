@@ -3,7 +3,12 @@ extends RefCounted
 static func command(driver: CharacterBody3D,path: PackedVector3Array,distances: PackedFloat64Array,cursor: int,cruise_speed: float,lane_offset: float,lane_limit:=3.8) -> Dictionary:
 	lane_offset=clampf(lane_offset,-lane_limit,lane_limit)
 	var best:=INF
+	var previous_cursor:=cursor
+	var advance_limit:=maxf(9.0,driver.velocity.length()*driver.get_physics_process_delta_time()*4+6)
 	for i in range(maxi(0,cursor-4),mini(path.size()-1,cursor+38)):
+		# Nearby parallel streets and a circuit's runoff can share plan-view space.
+		# Advance only as far as this frame's movement can reasonably justify.
+		if distances[i]-distances[previous_cursor]>advance_limit:break
 		var separation:=Vector2(driver.global_position.x-path[i].x,driver.global_position.z-path[i].z).length()
 		if separation<best:
 			best=separation;cursor=i
@@ -29,7 +34,7 @@ static func command(driver: CharacterBody3D,path: PackedVector3Array,distances: 
 	if escape>0:
 		driver.set_meta("escape_frames",escape-1)
 		return {"cursor":cursor,"distance":best,"throttle":-1.0,"steering":0.0,"brake":false}
-	var lookahead:=12.0+speed*0.35
+	var lookahead:=8.0+speed*0.28
 	if int(driver.get_meta("pass_hold",0))>0:lookahead=minf(lookahead,maxf(7,speed*.4))
 	var target:=cursor
 	while target<path.size()-1 and distances[target]<distances[cursor]+lookahead:
@@ -38,6 +43,12 @@ static func command(driver: CharacterBody3D,path: PackedVector3Array,distances: 
 	var pass_hold:int=maxi(0,int(driver.get_meta("pass_hold",0))-1)
 	driver.set_meta("pass_hold",pass_hold)
 	var effective_lane:float=clampf(float(driver.get_meta("pass_lane",lane_offset)),-lane_limit,lane_limit) if pass_hold>0 else lane_offset
+	var approaching:Vector3=path[target]-path[maxi(0,target-5)]
+	var departing:Vector3=path[mini(path.size()-1,target+5)]-path[target]
+	approaching.y=0;departing.y=0
+	if approaching.length()>.1 and departing.length()>.1:
+		var bend:=absf(approaching.signed_angle_to(departing,Vector3.UP))
+		effective_lane*=1-smoothstep(.15,.65,bend)
 	var desired: Vector3=path[target]+tangent.cross(Vector3.UP)*effective_lane-driver.global_position
 	desired.y=0
 	var angle:=(-driver.global_basis.z).signed_angle_to(desired.normalized(),Vector3.UP)
@@ -51,7 +62,7 @@ static func command(driver: CharacterBody3D,path: PackedVector3Array,distances: 
 		a.y=0;b.y=0
 		if a.length()<0.1 or b.length()<0.1: continue
 		var curvature:=absf(a.signed_angle_to(b,Vector3.UP))/maxf((a.length()+b.length())*0.5,1)
-		var corner_speed:=clampf(sqrt(17.0/maxf(curvature,0.001)),11.0,cruise_speed)
+		var corner_speed:=clampf(sqrt(17.0/maxf(curvature,0.001)),7.5,cruise_speed)
 		target_speed=minf(target_speed,sqrt(corner_speed*corner_speed+2*driver.braking*0.75*maxf(ahead-12,0)))
 	# A short forward vehicle check avoids simply pushing through the player.
 	if driver.is_on_floor() and speed>2:

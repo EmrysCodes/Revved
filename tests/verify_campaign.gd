@@ -18,7 +18,9 @@ func run() -> void:
 	check(profile.event_results.capital_run.best==80 and profile.event_results.capital_run.wins==3 and profile.credits==6870,"New course revision resets only its time, preserving wins and repeat-reward status")
 	check(not C.unlock_reason("asylum_circuit",profile.event_results).is_empty(),"Repeated wins do not unlock unique-event tiers")
 	profile.record_finish(1,0,"pearl_dash",90)
-	check(C.unlock_reason("asylum_circuit",profile.event_results).is_empty(),"Two different wins unlock next tier")
+	check(not C.unlock_reason("asylum_circuit",profile.event_results).is_empty(),"Every episode requires its preceding win")
+	profile.record_finish(1,0,"bushnell_clock",90)
+	check(C.unlock_reason("asylum_circuit",profile.event_results).is_empty(),"Third episode opens the next story race")
 	check(profile.buy_upgrade(0,1)==OK and profile.purchased_tiers[0]==1,"Purchase saved upgrade")
 	var balance:int=profile.credits
 	check(profile.buy_upgrade(0,1)==OK and profile.credits==balance,"Owned upgrade is free")

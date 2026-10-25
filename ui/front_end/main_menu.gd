@@ -5,6 +5,10 @@ var content: VBoxContainer
 var feedback: Label
 var scroll: ScrollContainer
 var preview_car: Node3D
+var menu_margin:MarginContainer
+var menu_logo:Label
+var showroom_caption:Label
+var focus_first:=true
 func _ready() -> void:
 	STYLE.apply(self)
 	var background:=ColorRect.new();add_child(background)
@@ -20,11 +24,13 @@ func _ready() -> void:
 	grid.resized.connect(grid.queue_redraw);grid.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	showroom()
 	var margin:=MarginContainer.new();add_child(margin);margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	menu_margin=margin
 	for side in ["left","right","top","bottom"]: margin.add_theme_constant_override("margin_"+side,30)
 	margin.add_theme_constant_override("margin_right",int(size.x*0.48))
-	resized.connect(func():margin.add_theme_constant_override("margin_right",int(size.x*0.48)))
+	resized.connect(layout_menu)
 	var layout:=VBoxContainer.new();margin.add_child(layout)
 	var logo:=Label.new();layout.add_child(logo);logo.text="REVVED";logo.add_theme_font_size_override("font_size",72)
+	menu_logo=logo
 	logo.add_theme_color_override("font_color",STYLE.GOLD)
 	var tagline:=Label.new();layout.add_child(tagline);tagline.text="YOUR CITY.  YOUR CAR.  YOUR LEGACY.";tagline.add_theme_font_size_override("font_size",15)
 	scroll=ScrollContainer.new();layout.add_child(scroll);scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL
@@ -32,11 +38,22 @@ func _ready() -> void:
 	content=VBoxContainer.new();scroll.add_child(content);content.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation",8)
 	feedback=Label.new();layout.add_child(feedback);feedback.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-	feedback.text="NIGHT CITY UPDATE / TWO DISTRICTS / LOCAL SAVES"
+	feedback.text="LAST LIGHT / v0.8.0 / SINGLE PLAYER"
 	home()
+	layout_menu()
 	if StreetProfile.return_to_legacy:
 		StreetProfile.return_to_legacy=false;call_deferred("career")
+	elif not StreetProfile.series_report.is_empty():
+		call_deferred("series_results")
+func layout_menu()->void:
+	if not is_instance_valid(menu_margin) or not is_instance_valid(menu_logo):return
+	var compact:=size.x<900
+	menu_margin.add_theme_constant_override("margin_right",24 if compact else int(size.x*.47))
+	for edge in ["left","top","bottom"]:menu_margin.add_theme_constant_override("margin_"+edge,18 if size.y<550 else 30)
+	menu_logo.add_theme_font_size_override("font_size",44 if size.y<550 else 72)
+	if is_instance_valid(showroom_caption):showroom_caption.visible=not compact
 func clear(title: String,description: String) -> void:
+	focus_first=true
 	for child in content.get_children(): content.remove_child(child);child.queue_free()
 	label(title,30);label(description,18);scroll.scroll_vertical=0
 func label(text: String,font:=20) -> Label:
@@ -46,31 +63,68 @@ func button(text: String,action: Callable,enabled:=true) -> Button:
 	var item:=Button.new();content.add_child(item);item.text=text;item.alignment=HORIZONTAL_ALIGNMENT_LEFT
 	item.custom_minimum_size=Vector2(0,46);item.add_theme_font_size_override("font_size",20)
 	item.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+	item.clip_text=true
 	item.disabled=not enabled;item.pressed.connect(action)
-	if content.get_child_count()==3: item.grab_focus()
+	if focus_first and enabled:item.grab_focus();focus_first=false
 	return item
 func back() -> void: button("← Main menu",home)
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		home();get_viewport().set_input_as_handled()
 func home() -> void:
-	clear("OWN THE STREETS","Two districts. Eighteen events. One name to build.")
-	button("01   STREET LEGACY    /    Career",career)
+	var next_id:String=CAREER.next_event(StreetProfile.event_results)
+	clear("MAKE YOUR NAME","LAST LIGHT / An original 18-race story. An independent garage. A city worth staying for.")
+	if StreetProfile.driver_created:label("%s / %d OF 18 WINS\n%s"%[StreetProfile.driver_name.to_upper(),CAREER.wins(StreetProfile.event_results),CAREER.event(next_id).name.to_upper() if not next_id.is_empty() else "STORY COMPLETE"],17).modulate=STYLE.CYAN
+	button("01   STREET LEGACY    /    "+("Continue your story" if StreetProfile.driver_created else "Begin Last Light"),career)
+	if StreetProfile.driver_created:button("NEW STREET LEGACY    /    Back up & start a new driver",confirm_new_story)
 	button("02   SINGLE RACE    /    Practice any event",single_race)
-	button("03   FREE ROAM    /    Explore the city",func():StreetProfile.launch("free"))
-	button("04   ONLINE    /    In development",online)
+	button("03   CHALLENGE SERIES    /    Three-round score attack",challenge_series)
+	if StreetProfile.series_active:button("RESUME SERIES    /    ROUND %d OF 3"%[StreetProfile.series_round+1],func():StreetProfile.resume_series())
+	button("04   FREE ROAM    /    Drive without a clock",func():StreetProfile.launch("free"))
 	button("05   SETTINGS",settings)
-	button("06   CREDITS & CONTROLS",credits)
+	button("06   EXTRAS    /    Workshop, credits & online roadmap",extras)
 	button("QUIT GAME",func():get_tree().quit())
-func single_race() -> void:
-	clear("PICK YOUR RACE","Practice any event. Career locks and rewards do not apply here.")
-	for chapter in range(2):
-		label(CAREER.CHAPTERS[chapter].district.to_upper(),20).modulate=CAREER.CHAPTERS[chapter].color
-		for event in CAREER.EVENTS:
-			if event.chapter!=chapter:continue
-			var id:String=event.id
-			button(event.name.to_upper()+" / "+event.kind,func():StreetProfile.launch_event(id,"single"),FileAccess.file_exists(CAREER.route_path(id)))
+func extras()->void:
+	clear("OFF THE CLOCK","Tools, credits and what comes after the current single-player game.")
+	button("WORLD WORKSHOP / Drive your handbuilt scene",handbuilt_city)
+	button("CREDITS & CONTROLS",credits)
+	button("ONLINE / Development roadmap",online)
 	back()
+func confirm_new_story()->void:
+	var dialog:=ConfirmationDialog.new();add_child(dialog);dialog.title="START A NEW STREET LEGACY?"
+	dialog.dialog_text="Your current career file will be backed up first.\nCreate a new driver and restart Last Light with 5,000 CR.\nCurrent career wins, reputation and owned upgrades reset.\nVisual, audio and display preferences remain."
+	dialog.ok_button_text="BACK UP & START NEW"
+	dialog.confirmed.connect(func():
+		var result:=StreetProfile.new_story()
+		if result==OK:career()
+		else:feedback.text="Could not back up or save a new career. Current progress was kept. "+error_string(result)
+		dialog.queue_free())
+	dialog.canceled.connect(dialog.queue_free);dialog.popup_centered()
+func challenge_series()->void:
+	clear("CHALLENGE SERIES","Three rounds. Points carry between races. Gold 24 / Silver 18 / Bronze 12. No entry fee or career rewards. Series progress lasts until you close the game.")
+	if StreetProfile.series_active:
+		button("RESUME CURRENT SERIES / ROUND %d"%[StreetProfile.series_round+1],func():StreetProfile.resume_series())
+		button("END CURRENT SERIES",func():StreetProfile.series_active=false;challenge_series())
+	for i in range(StreetProfile.SERIES.SERIES.size()):
+		var index:=i;var series:Dictionary=StreetProfile.SERIES.SERIES[i]
+		button(series.name,func():StreetProfile.begin_series(index))
+		label(series.description,17).modulate=Color("9db8c7")
+	back()
+func series_results()->void:
+	clear("SERIES COMPLETE",StreetProfile.series_report)
+	for i in range(StreetProfile.series_results.size()):
+		var result:Dictionary=StreetProfile.series_results[i]
+		label("%02d / %s\nPLACE %d / %d POINTS / %02d:%05.2f"%[i+1,CAREER.event(result.event).name.to_upper(),result.place,result.points,int(result.seconds)/60,fmod(float(result.seconds),60)],19)
+	StreetProfile.series_report=""
+	button("RACE ANOTHER SERIES",challenge_series);back()
+func handbuilt_city()->void:
+	var path:String=ProjectSettings.get_setting("revved/world_workshop/active_scene","res://world/handbuilt/plattsburgh_region.scn")
+	if not ResourceLoader.exists(path):feedback.text="The handbuilt world could not be found. Choose a saved scene in World Workshop.";return
+	StreetProfile.launch_mode="builder";get_tree().paused=false
+	var result:=get_tree().change_scene_to_file(path)
+	if result!=OK:feedback.text="Could not open the handbuilt world: "+error_string(result)
+func single_race() -> void:
+	get_tree().change_scene_to_file("res://ui/front_end/race_browser.tscn")
 func career() -> void:
 	get_tree().change_scene_to_file("res://ui/legacy/legacy_hub.tscn" if StreetProfile.driver_created else "res://ui/legacy/create_driver.tscn")
 func online() -> void:
@@ -89,6 +143,7 @@ func settings() -> void:
 	clear("SETTINGS","Preferences save locally. Units also remain available from the pause menu.")
 	label("Distance & speed",21)
 	var units:=OptionButton.new();content.add_child(units)
+	units.clip_text=true;units.fit_to_longest_item=false
 	units.add_item("US — MPH / miles / feet");units.add_item("Metric — km/h / kilometres / metres")
 	units.select(GameSettings.unit_system);units.custom_minimum_size.y=44
 	units.item_selected.connect(func(value):feedback.text="Units saved." if GameSettings.set_unit_system(value)==OK else "Could not save units; applied for this session.")
@@ -98,6 +153,7 @@ func settings() -> void:
 	sync.toggled.connect(func(value):StreetProfile.vsync=value;save_display())
 	label("Anti-aliasing",21)
 	var aa:=OptionButton.new();content.add_child(aa)
+	aa.clip_text=true;aa.fit_to_longest_item=false
 	for option in ["Off","2× MSAA","4× MSAA","8× MSAA"]: aa.add_item(option)
 	aa.select(mini(StreetProfile.antialiasing,1) if OS.has_feature("mobile") else StreetProfile.antialiasing);aa.custom_minimum_size.y=42
 	if OS.has_feature("mobile"):
@@ -113,6 +169,7 @@ func settings() -> void:
 	ambience.value_changed.connect(func(value):StreetProfile.ambience_volume=value/100.0;save_display())
 	label("Touch driving controls",21)
 	var touch:=OptionButton.new();content.add_child(touch)
+	touch.clip_text=true;touch.fit_to_longest_item=false
 	for option in ["Auto / phones and tablets","Always on / desktop testing","Off"]: touch.add_item(option)
 	touch.select(StreetProfile.touch_mode);touch.custom_minimum_size.y=42
 	touch.item_selected.connect(func(value):StreetProfile.touch_mode=value;feedback.text="Touch preference saved." if StreetProfile.save()==OK else "Touch preference applied; save failed.")
@@ -120,8 +177,15 @@ func settings() -> void:
 	var vehicles:=HSlider.new();content.add_child(vehicles);vehicles.min_value=0;vehicles.max_value=100;vehicles.step=1
 	vehicles.value=StreetProfile.vehicle_volume*100;vehicles.custom_minimum_size.y=36
 	vehicles.value_changed.connect(func(value):StreetProfile.vehicle_volume=value/100.0;save_display())
-	label("Music is not included yet.",17)
+	label("Story / dialogue",21)
+	label("Menu music",17)
+	var music:=HSlider.new();content.add_child(music);music.min_value=0;music.max_value=100;music.value=StreetProfile.music_volume*100;music.custom_minimum_size.y=36;music.value_changed.connect(func(value):StreetProfile.music_volume=value/100;save_display())
+	var voice:=CheckButton.new();content.add_child(voice);voice.text="Synthetic dialogue";voice.button_pressed=StreetProfile.story_voice;voice.toggled.connect(func(value):StreetProfile.story_voice=value;save_display())
+	var auto:=CheckButton.new();content.add_child(auto);auto.text="Auto-advance dialogue";auto.button_pressed=StreetProfile.story_auto;auto.toggled.connect(func(value):StreetProfile.story_auto=value;save_display())
+	var dialogue:=HSlider.new();content.add_child(dialogue);dialogue.min_value=0;dialogue.max_value=100;dialogue.value=StreetProfile.dialogue_volume*100;dialogue.custom_minimum_size.y=36;dialogue.value_changed.connect(func(value):StreetProfile.dialogue_volume=value/100;save_display())
+	label("Subtitles are always shown. Enter / Next reveals or advances a line. Scenes can be paused, skipped and replayed from the Story Journal.",16)
 	back()
+	units.grab_focus();scroll.scroll_vertical=0
 func save_display() -> void:
 	StreetProfile.apply_display();feedback.text="Display settings saved." if StreetProfile.save()==OK else "Display applied; could not save."
 func credits() -> void:
@@ -132,6 +196,9 @@ func credits() -> void:
 	label("Vehicle audio: Kenney Starter Kit Racing (CC0). Tire skid: Landeplage (CC0). REVVED supplies gearing, pitch, slip and impact mixing. github.com/KenneyNL/Starter-Kit-Racing",16)
 	label("City architecture and street surfaces: Modern City Environment — OTOY360studios, Fab Standard license. Reusable building models, distance proxies, revised lighting and local car material overrides. Licensed source files remain private.",16)
 	label("Ambience: Free City & Nature Sounds — Gregor Quendel / Cinematic Sound Design, CC BY 4.0. Excerpts looped, gain-adjusted; race crowd downmixed to mono.\nSource: fab.com/listings/15f8225f-057b-4536-af62-7a43ec328632\nLicense: creativecommons.org/licenses/by/4.0/",16)
+	label("Plattsburgh / Valcour geography: NYS ITS Geospatial Services — NYS Streets, Building Footprints and Hydrography. Terrain: USGS 3DEP. Land cover inferred from USDA / USGS NAIP. Architecture, property details, planting, signs and bridge structures are approximations. Sources: gis.ny.gov / nationalmap.gov",16)
+	label("LAST LIGHT: original REVVED screenplay. Dialogue: offline Windows synthetic voice, with rate variation; a prototype performance, not recorded actors. Character images use the existing driver portrait library.",16)
+	label("Last Light menu score: original procedural synthesis made for REVVED. No third-party music samples.",16)
 	back()
 func _process(delta: float) -> void:
 	if is_instance_valid(preview_car): preview_car.rotation.y+=delta*0.12
@@ -161,6 +228,7 @@ func showroom() -> void:
 	camera.look_at(Vector3(0,0.65,0));camera.fov=43;camera.current=true
 	preload("res://ui/front_end/night_showroom.gd").decorate(world,preview_car,platform,camera,environment.environment)
 	var caption:=Label.new();add_child(caption);caption.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT)
+	showroom_caption=caption
 	caption.offset_left=-470;caption.offset_right=-30;caption.offset_top=190;caption.offset_bottom=250
 	caption.text=preload("res://vehicles/vehicle_catalog.gd").title(GameSettings.vehicle_id).to_upper()+"\nYOUR CURRENT GARAGE BUILD";caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	caption.add_theme_font_size_override("font_size",23);caption.modulate=Color("d3b986")

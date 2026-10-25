@@ -1,0 +1,852 @@
+{
+  "title": "LAST LIGHT",
+  "cast": {
+    "mara": {
+      "name": "MARA VOSS",
+      "role": "North Country Collective / garage owner",
+      "presentation": 1,
+      "portrait": 2,
+      "color": "ffca63",
+      "rate": 0
+    },
+    "inez": {
+      "name": "INEZ VALE",
+      "role": "Lake Ghosts / coast captain",
+      "presentation": 1,
+      "portrait": 6,
+      "color": "59dce8",
+      "rate": -1
+    },
+    "quinn": {
+      "name": "QUINN REYES",
+      "role": "Mechanic / your oldest friend",
+      "presentation": 1,
+      "portrait": 0,
+      "color": "b2eca1",
+      "rate": 1
+    },
+    "jade": {
+      "name": "JADE SLOANE",
+      "role": "Afterhours / race promoter",
+      "presentation": 1,
+      "portrait": 8,
+      "color": "f394c0",
+      "rate": -2
+    }
+  },
+  "scenes": {
+    "prologue": {
+      "id": "prologue",
+      "title": "STREET LEGACY / LAST LIGHT",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "quinn",
+          "text": "You said you needed a fresh start. I said I knew a garage. I left out the part where it might be closing.",
+          "audio": "res://assets/audio/story/prologue_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "We keep the lights on by fixing what other people gave up on. Cars. Mostly.",
+          "audio": "res://assets/audio/story/prologue_01.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "Plattsburgh after dark. The river, the city, the coast. Eighteen chances to make a name.",
+          "audio": "res://assets/audio/story/prologue_02.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "No shortcuts. No one owns your name. If you want a place here, we start tonight.",
+          "audio": "res://assets/audio/story/prologue_03.wav"
+        }
+      ]
+    },
+    "capital_run_before": {
+      "id": "capital_run_before",
+      "title": "A NAME ON THE DOOR",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "quinn",
+          "text": "You made it, {driver}. Same car, different city. Mara is waiting by the lift.",
+          "audio": "res://assets/audio/story/capital_run_before_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "Quinn says you can drive. I need someone who can finish. Our garage lease expires at the end of the week.",
+          "audio": "res://assets/audio/story/capital_run_before_01.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "Tonight starts small. Win the Ignition Run. Earn a place here before you try to save it.",
+          "audio": "res://assets/audio/story/capital_run_before_02.wav"
+        }
+      ]
+    },
+    "capital_run_after": {
+      "id": "capital_run_after",
+      "title": "A NAME ON THE DOOR / AFTER THE FINISH",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "quinn",
+          "text": "First win. I kept the receipt. Proof you were here before anybody knew your name.",
+          "audio": "res://assets/audio/story/capital_run_after_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "There is a spare bay with your name on it. Use the garage. Build carefully. We have a long week ahead.",
+          "audio": "res://assets/audio/story/capital_run_after_01.wav"
+        }
+      ]
+    },
+    "pearl_dash_before": {
+      "id": "pearl_dash_before",
+      "title": "WORD TRAVELS",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "quinn",
+          "text": "Margaret Street is awake now. Everybody heard about your first run.",
+          "audio": "res://assets/audio/story/pearl_dash_before_00.wav"
+        },
+        {
+          "speaker": "jade",
+          "text": "Jade Sloane. I put on Afterhours. Win tonight and I can put you in front of people with real money.",
+          "audio": "res://assets/audio/story/pearl_dash_before_01.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "People are not a shortcut, Jade. Let the driver earn the street.",
+          "audio": "res://assets/audio/story/pearl_dash_before_02.wav"
+        }
+      ]
+    },
+    "pearl_dash_after": {
+      "id": "pearl_dash_after",
+      "title": "WORD TRAVELS / AFTER THE FINISH",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "jade",
+          "text": "Clean finish. You have a face people will remember.",
+          "audio": "res://assets/audio/story/pearl_dash_after_00.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "She means a face she can put on a poster. Keep your name. We will handle the rest.",
+          "audio": "res://assets/audio/story/pearl_dash_after_01.wav"
+        }
+      ]
+    },
+    "bushnell_clock_before": {
+      "id": "bushnell_clock_before",
+      "title": "THE QUIET TEST",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "mara",
+          "text": "No pack tonight. Just the river and the clock. It is easy to borrow courage from another car.",
+          "audio": "res://assets/audio/story/bushnell_clock_before_00.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "Bring it home under the target. We need precision before we need more power.",
+          "audio": "res://assets/audio/story/bushnell_clock_before_01.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "And if the run goes wrong, reset. Nobody earns respect by pretending they cannot learn.",
+          "audio": "res://assets/audio/story/bushnell_clock_before_02.wav"
+        }
+      ]
+    },
+    "bushnell_clock_after": {
+      "id": "bushnell_clock_after",
+      "title": "THE QUIET TEST / AFTER THE FINISH",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "mara",
+          "text": "That is control. The kind that still works when nobody is watching.",
+          "audio": "res://assets/audio/story/bushnell_clock_after_00.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "Inez called from the coast. Apparently your quiet little run was not so quiet.",
+          "audio": "res://assets/audio/story/bushnell_clock_after_01.wav"
+        }
+      ]
+    },
+    "asylum_circuit_before": {
+      "id": "asylum_circuit_before",
+      "title": "THE COLLECTIVE",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "mara",
+          "text": "North Country Collective is not a sponsor. It is the people who keep these cars running.",
+          "audio": "res://assets/audio/story/asylum_circuit_before_00.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "Two laps with the locals. Show them you belong here.",
+          "audio": "res://assets/audio/story/asylum_circuit_before_01.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "I used to run these streets with Inez. Before a contract taught us to keep score against each other.",
+          "audio": "res://assets/audio/story/asylum_circuit_before_02.wav"
+        }
+      ]
+    },
+    "asylum_circuit_after": {
+      "id": "asylum_circuit_after",
+      "title": "THE COLLECTIVE / AFTER THE FINISH",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "quinn",
+          "text": "You earned a crew tonight. Not followers. People who will help you push a dead car home.",
+          "audio": "res://assets/audio/story/asylum_circuit_after_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "Remember the difference. Jade will offer you plenty of the other kind.",
+          "audio": "res://assets/audio/story/asylum_circuit_after_01.wav"
+        }
+      ]
+    },
+    "columbus_sprint_before": {
+      "id": "columbus_sprint_before",
+      "title": "SOUTH OF THE RIVER",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "jade",
+          "text": "Afterhours has a lease rescue program. One exclusive driver agreement. The garage could stop worrying.",
+          "audio": "res://assets/audio/story/columbus_sprint_before_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "And every driver in the building would owe you a cut. We have read your contracts.",
+          "audio": "res://assets/audio/story/columbus_sprint_before_01.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "Leave the paperwork here. We have a Saranac run to win.",
+          "audio": "res://assets/audio/story/columbus_sprint_before_02.wav"
+        }
+      ]
+    },
+    "columbus_sprint_after": {
+      "id": "columbus_sprint_after",
+      "title": "SOUTH OF THE RIVER / AFTER THE FINISH",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "jade",
+          "text": "You do not have to answer tonight. The offer will still be here when the rent is due.",
+          "audio": "res://assets/audio/story/columbus_sprint_after_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "So will we. There is another way through this.",
+          "audio": "res://assets/audio/story/columbus_sprint_after_01.wav"
+        }
+      ]
+    },
+    "northbound_run_before": {
+      "id": "northbound_run_before",
+      "title": "OLD SIGNAL",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "inez",
+          "text": "You are the new name in Mara's garage. I am Inez. She probably told you I left.",
+          "audio": "res://assets/audio/story/northbound_run_before_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "I told them we stopped racing together.",
+          "audio": "res://assets/audio/story/northbound_run_before_01.wav"
+        },
+        {
+          "speaker": "inez",
+          "text": "Then ask her why. First, take the northern run. I want to see whether the stories match the driving.",
+          "audio": "res://assets/audio/story/northbound_run_before_02.wav"
+        }
+      ]
+    },
+    "northbound_run_after": {
+      "id": "northbound_run_after",
+      "title": "OLD SIGNAL / AFTER THE FINISH",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "inez",
+          "text": "They match. Come find me when you have earned the downtown crown.",
+          "audio": "res://assets/audio/story/northbound_run_after_00.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "She sounded like she wanted you to win. Mara went quiet when I said that.",
+          "audio": "res://assets/audio/story/northbound_run_after_01.wav"
+        }
+      ]
+    },
+    "downtown_endurance_before": {
+      "id": "downtown_endurance_before",
+      "title": "KEEP THE LIGHTS ON",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "quinn",
+          "text": "The landlord sent the final notice. Mara put it under the parts catalogue like that could make it disappear.",
+          "audio": "res://assets/audio/story/downtown_endurance_before_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "Three laps. This purse keeps the lights on long enough to reach the final.",
+          "audio": "res://assets/audio/story/downtown_endurance_before_01.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "The garage is not yours to carry alone. But tonight, we could use your help.",
+          "audio": "res://assets/audio/story/downtown_endurance_before_02.wav"
+        }
+      ]
+    },
+    "downtown_endurance_after": {
+      "id": "downtown_endurance_after",
+      "title": "KEEP THE LIGHTS ON / AFTER THE FINISH",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "mara",
+          "text": "The power stays on. Thank you. That is more than a result on a board.",
+          "audio": "res://assets/audio/story/downtown_endurance_after_00.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "Now stop looking at the notice. We still have a crown to chase.",
+          "audio": "res://assets/audio/story/downtown_endurance_after_01.wav"
+        }
+      ]
+    },
+    "capitol_duel_before": {
+      "id": "capitol_duel_before",
+      "title": "NO ROOM TO HIDE",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "mara",
+          "text": "Before I put the Collective behind you, we run one on one.",
+          "audio": "res://assets/audio/story/capitol_duel_before_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "Inez and I signed with Afterhours years ago. When the team split, I blamed her for leaving me with the debt.",
+          "audio": "res://assets/audio/story/capitol_duel_before_01.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "I never asked what it cost her to leave. That is a mistake I will not make with you.",
+          "audio": "res://assets/audio/story/capitol_duel_before_02.wav"
+        }
+      ]
+    },
+    "capitol_duel_after": {
+      "id": "capitol_duel_after",
+      "title": "NO ROOM TO HIDE / AFTER THE FINISH",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "mara",
+          "text": "You beat me straight. The Collective is yours to represent.",
+          "audio": "res://assets/audio/story/capitol_duel_after_00.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "Then let us make sure the whole city sees it.",
+          "audio": "res://assets/audio/story/capitol_duel_after_01.wav"
+        }
+      ]
+    },
+    "capitol_crown_before": {
+      "id": "capitol_crown_before",
+      "title": "CROWN OF PLATTSBURGH",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "jade",
+          "text": "Downtown final. Win this and Afterhours can make the garage problem disappear tonight.",
+          "audio": "res://assets/audio/story/capitol_crown_before_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "No signature. No borrowed name. We race for the purse.",
+          "audio": "res://assets/audio/story/capitol_crown_before_01.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "You came here looking for a place, {driver}. Tonight you get to keep it.",
+          "audio": "res://assets/audio/story/capitol_crown_before_02.wav"
+        }
+      ]
+    },
+    "capitol_crown_after": {
+      "id": "capitol_crown_after",
+      "title": "CROWN OF PLATTSBURGH / AFTER THE FINISH",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "mara",
+          "text": "Downtown is yours. We can cover the overdue rent. We still need a future.",
+          "audio": "res://assets/audio/story/capitol_crown_after_00.wav"
+        },
+        {
+          "speaker": "inez",
+          "text": "I have a way to give you one. Bring your crew south. This time, Mara, come with them.",
+          "audio": "res://assets/audio/story/capitol_crown_after_01.wav"
+        },
+        {
+          "speaker": "jade",
+          "text": "The coast does not owe you the same welcome. We will talk again.",
+          "audio": "res://assets/audio/story/capitol_crown_after_02.wav"
+        }
+      ]
+    },
+    "founders_entry_before": {
+      "id": "founders_entry_before",
+      "title": "A DIFFERENT RHYTHM",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "inez",
+          "text": "The coast opens up. So do your mistakes. Fast roads ask for patience.",
+          "audio": "res://assets/audio/story/founders_entry_before_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "Inez. I should have called.",
+          "audio": "res://assets/audio/story/founders_entry_before_01.wav"
+        },
+        {
+          "speaker": "inez",
+          "text": "You are here now. Let the driver take Southbound. We can talk while they make the introduction.",
+          "audio": "res://assets/audio/story/founders_entry_before_02.wav"
+        }
+      ]
+    },
+    "founders_entry_after": {
+      "id": "founders_entry_after",
+      "title": "A DIFFERENT RHYTHM / AFTER THE FINISH",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "inez",
+          "text": "Good introduction. The Lake Ghosts will give you a fair run.",
+          "audio": "res://assets/audio/story/founders_entry_after_00.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "Mara and Inez are still talking. Nobody has walked away. That is progress.",
+          "audio": "res://assets/audio/story/founders_entry_after_01.wav"
+        }
+      ]
+    },
+    "pitkin_dash_before": {
+      "id": "pitkin_dash_before",
+      "title": "GHOSTS ON THE LAKE",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "inez",
+          "text": "Lake Ghosts started with three cars and a toolbox. We race so everybody gets another night on the road.",
+          "audio": "res://assets/audio/story/pitkin_dash_before_00.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "Sounds familiar.",
+          "audio": "res://assets/audio/story/pitkin_dash_before_01.wav"
+        },
+        {
+          "speaker": "inez",
+          "text": "It should. Mara taught me that part. Show the coast the same respect you showed downtown.",
+          "audio": "res://assets/audio/story/pitkin_dash_before_02.wav"
+        }
+      ]
+    },
+    "pitkin_dash_after": {
+      "id": "pitkin_dash_after",
+      "title": "GHOSTS ON THE LAKE / AFTER THE FINISH",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "inez",
+          "text": "The crew likes you. More importantly, they trust your line.",
+          "audio": "res://assets/audio/story/pitkin_dash_after_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "I recognize what you built here, Inez. I should have seen it sooner.",
+          "audio": "res://assets/audio/story/pitkin_dash_after_01.wav"
+        }
+      ]
+    },
+    "river_clock_before": {
+      "id": "river_clock_before",
+      "title": "WHAT THE CLOCK KEEPS",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "inez",
+          "text": "My Afterhours contract did not end when I left. I paid for two years after that last race.",
+          "audio": "res://assets/audio/story/river_clock_before_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "I thought you left me holding everything.",
+          "audio": "res://assets/audio/story/river_clock_before_01.wav"
+        },
+        {
+          "speaker": "inez",
+          "text": "They told us different stories. Beat the coastal clock. Then we stop letting them tell this one.",
+          "audio": "res://assets/audio/story/river_clock_before_02.wav"
+        }
+      ]
+    },
+    "river_clock_after": {
+      "id": "river_clock_after",
+      "title": "WHAT THE CLOCK KEEPS / AFTER THE FINISH",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "mara",
+          "text": "I am sorry. For the silence. For making it easier to believe we were enemies.",
+          "audio": "res://assets/audio/story/river_clock_after_00.wav"
+        },
+        {
+          "speaker": "inez",
+          "text": "Apology accepted. Now let us do something useful with the years we have left.",
+          "audio": "res://assets/audio/story/river_clock_after_01.wav"
+        }
+      ]
+    },
+    "main_street_circuit_before": {
+      "id": "main_street_circuit_before",
+      "title": "TWO CREWS, ONE NIGHT",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "quinn",
+          "text": "Two crews in one garage. We are going to need more mugs.",
+          "audio": "res://assets/audio/story/main_street_circuit_before_00.wav"
+        },
+        {
+          "speaker": "inez",
+          "text": "The Midnight circuit will show the coast we are working together.",
+          "audio": "res://assets/audio/story/main_street_circuit_before_01.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "No team orders. Everyone gets a fair race. That is what this was supposed to be.",
+          "audio": "res://assets/audio/story/main_street_circuit_before_02.wav"
+        }
+      ]
+    },
+    "main_street_circuit_after": {
+      "id": "main_street_circuit_after",
+      "title": "TWO CREWS, ONE NIGHT / AFTER THE FINISH",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "inez",
+          "text": "The Ghosts and the Collective can fill a grid without asking Jade for a single invitation.",
+          "audio": "res://assets/audio/story/main_street_circuit_after_00.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "Then why not put on our own final? City to coast. Everybody welcome.",
+          "audio": "res://assets/audio/story/main_street_circuit_after_01.wav"
+        }
+      ]
+    },
+    "foundry_sprint_before": {
+      "id": "foundry_sprint_before",
+      "title": "NIGHT SHIFT",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "jade",
+          "text": "Your independent final needs a prize pool. My events already have one. There is room for you if you stop this.",
+          "audio": "res://assets/audio/story/foundry_sprint_before_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "We are not shutting anybody out. We are opening another door.",
+          "audio": "res://assets/audio/story/foundry_sprint_before_01.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "Night Shift pays the first share. One race at a time. We can do this without a contract.",
+          "audio": "res://assets/audio/story/foundry_sprint_before_02.wav"
+        }
+      ]
+    },
+    "foundry_sprint_after": {
+      "id": "foundry_sprint_after",
+      "title": "NIGHT SHIFT / AFTER THE FINISH",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "quinn",
+          "text": "First share is in. The crews are matching it. They want this race as much as we do.",
+          "audio": "res://assets/audio/story/foundry_sprint_after_00.wav"
+        },
+        {
+          "speaker": "jade",
+          "text": "Be careful what you promise people. They will remember if you fail.",
+          "audio": "res://assets/audio/story/foundry_sprint_after_01.wav"
+        }
+      ]
+    },
+    "silver_lane_rush_before": {
+      "id": "silver_lane_rush_before",
+      "title": "NOT FOR SALE",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "jade",
+          "text": "Last offer. Your name on an Afterhours car. A guaranteed seat. No more worrying about that garage.",
+          "audio": "res://assets/audio/story/silver_lane_rush_before_00.wav"
+        },
+        {
+          "speaker": "inez",
+          "text": "A seat is not the same thing as a home.",
+          "audio": "res://assets/audio/story/silver_lane_rush_before_01.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "This is your line, {driver}. Race Lake Road Rush. Let the finish be your answer.",
+          "audio": "res://assets/audio/story/silver_lane_rush_before_02.wav"
+        }
+      ]
+    },
+    "silver_lane_rush_after": {
+      "id": "silver_lane_rush_after",
+      "title": "NOT FOR SALE / AFTER THE FINISH",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "quinn",
+          "text": "No signature. No sale. I am keeping this result next to the first one.",
+          "audio": "res://assets/audio/story/silver_lane_rush_after_00.wav"
+        },
+        {
+          "speaker": "jade",
+          "text": "All right. Then I will meet you on the road. No contracts. Just a race.",
+          "audio": "res://assets/audio/story/silver_lane_rush_after_01.wav"
+        }
+      ]
+    },
+    "eastside_endurance_before": {
+      "id": "eastside_endurance_before",
+      "title": "THE LONG NIGHT",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "inez",
+          "text": "The final is funded. Tonight we prove the cars and the people can go the distance.",
+          "audio": "res://assets/audio/story/eastside_endurance_before_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "Three coastal laps. Keep something in reserve. A fast first lap means nothing if you never finish.",
+          "audio": "res://assets/audio/story/eastside_endurance_before_01.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "We have a bay, a toolbox, and a city full of people who showed up. Bring it back to them.",
+          "audio": "res://assets/audio/story/eastside_endurance_before_02.wav"
+        }
+      ]
+    },
+    "eastside_endurance_after": {
+      "id": "eastside_endurance_after",
+      "title": "THE LONG NIGHT / AFTER THE FINISH",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "inez",
+          "text": "That is endurance. The car is ready. So are you.",
+          "audio": "res://assets/audio/story/eastside_endurance_after_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "One more test with Inez. Then the whole road is waiting.",
+          "audio": "res://assets/audio/story/eastside_endurance_after_01.wav"
+        }
+      ]
+    },
+    "river_duel_before": {
+      "id": "river_duel_before",
+      "title": "THE GHOST LINE",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "inez",
+          "text": "One on one. No secret line. No magic setup. Just the road I know best.",
+          "audio": "res://assets/audio/story/river_duel_before_00.wav"
+        },
+        {
+          "speaker": "inez",
+          "text": "I spent years believing independence meant being alone. Your crew proved otherwise.",
+          "audio": "res://assets/audio/story/river_duel_before_01.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "Give them a proper run, Inez. They have earned that much.",
+          "audio": "res://assets/audio/story/river_duel_before_02.wav"
+        }
+      ]
+    },
+    "river_duel_after": {
+      "id": "river_duel_after",
+      "title": "THE GHOST LINE / AFTER THE FINISH",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "inez",
+          "text": "You found your own line. That is the only one that lasts.",
+          "audio": "res://assets/audio/story/river_duel_after_00.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "City to Coast is on. Everybody is coming. Let us give them a night worth remembering.",
+          "audio": "res://assets/audio/story/river_duel_after_01.wav"
+        }
+      ]
+    },
+    "eastside_crown_before": {
+      "id": "eastside_crown_before",
+      "title": "LAST LIGHT",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "jade",
+          "text": "I brought a car, not a contract. If you want a place on this grid, you earn it. That was your rule.",
+          "audio": "res://assets/audio/story/eastside_crown_before_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "Then welcome to the grid. Downtown to Valcour. One road, one finish.",
+          "audio": "res://assets/audio/story/eastside_crown_before_01.wav"
+        },
+        {
+          "speaker": "inez",
+          "text": "Whatever happens, the race belongs to the people who built it.",
+          "audio": "res://assets/audio/story/eastside_crown_before_02.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "Look at the lights, {driver}. You are not arriving anymore. You are home.",
+          "audio": "res://assets/audio/story/eastside_crown_before_03.wav"
+        }
+      ]
+    },
+    "eastside_crown_after": {
+      "id": "eastside_crown_after",
+      "title": "LAST LIGHT / AFTER THE FINISH",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "quinn",
+          "text": "You did it. The purse covers the new lease. Mara has already started arguing about a second lift.",
+          "audio": "res://assets/audio/story/eastside_crown_after_00.wav"
+        },
+        {
+          "speaker": "jade",
+          "text": "You beat me. Keep your name. You made it worth more than anything I could have offered.",
+          "audio": "res://assets/audio/story/eastside_crown_after_01.wav"
+        },
+        {
+          "speaker": "inez",
+          "text": "One city. Two crews. No locked doors.",
+          "audio": "res://assets/audio/story/eastside_crown_after_02.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "Your name goes above the bay tonight. Not because you saved us. Because you stayed.",
+          "audio": "res://assets/audio/story/eastside_crown_after_03.wav"
+        }
+      ]
+    },
+    "epilogue": {
+      "id": "epilogue",
+      "title": "THE DOOR STAYS OPEN",
+      "chapter": 1,
+      "lines": [
+        {
+          "speaker": "quinn",
+          "text": "First receipt. Last result. I put them both on the wall. Everything between them is yours.",
+          "audio": "res://assets/audio/story/epilogue_00.wav"
+        },
+        {
+          "speaker": "mara",
+          "text": "The lease is signed. The garage stays independent. Tomorrow, we open the doors.",
+          "audio": "res://assets/audio/story/epilogue_01.wav"
+        },
+        {
+          "speaker": "inez",
+          "text": "Tonight, take the coast road. No clock. No target. Just drive.",
+          "audio": "res://assets/audio/story/epilogue_02.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "Street Legacy complete. Come back for a better time, another build, or just another night with us.",
+          "audio": "res://assets/audio/story/epilogue_03.wav"
+        }
+      ]
+    },
+    "setback": {
+      "id": "setback",
+      "title": "ANOTHER RUN",
+      "chapter": 0,
+      "lines": [
+        {
+          "speaker": "mara",
+          "text": "A result is not an ending. Come back, check the car, and find the part of the road you can improve.",
+          "audio": "res://assets/audio/story/setback_00.wav"
+        },
+        {
+          "speaker": "quinn",
+          "text": "We are still here. The next run is yours.",
+          "audio": "res://assets/audio/story/setback_01.wav"
+        }
+      ]
+    }
+  },
+  "order": [
+    "capital_run",
+    "pearl_dash",
+    "bushnell_clock",
+    "asylum_circuit",
+    "columbus_sprint",
+    "northbound_run",
+    "downtown_endurance",
+    "capitol_duel",
+    "capitol_crown",
+    "founders_entry",
+    "pitkin_dash",
+    "river_clock",
+    "main_street_circuit",
+    "foundry_sprint",
+    "silver_lane_rush",
+    "eastside_endurance",
+    "river_duel",
+    "eastside_crown"
+  ]
+}

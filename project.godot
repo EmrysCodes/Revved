@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="REVVED"
-config/version="0.3.2-night-city"
+config/version="0.8.0-last-light"
 run/main_scene="res://ui/front_end/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 
 GameSettings="*res://core/game_settings.gd"
 StreetProfile="*res://core/street_profile.gd"
+MenuScore="*res://audio/menu_score.gd"
 
 [display]
 
@@ -29,19 +30,23 @@ window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-window/handheld/orientation=0
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/revved_world_workshop/plugin.cfg")
 
 [physics]
 
 3d/physics_engine="Jolt Physics"
+jolt_physics_3d/limits/max_bodies=32768
 common/physics_interpolation=true
 
 [rendering]
 
-rendering_device/driver.windows="vulkan"
-renderer/rendering_method="forward_plus"
-renderer/rendering_method.mobile="mobile"
-rendering_device/driver.ios="metal"
 anti_aliasing/quality/msaa_3d=2
 anti_aliasing/quality/use_taa=true
 anti_aliasing/quality/use_taa.mobile=false
+
+[revved]
+
+world_workshop/active_scene="res://world/handbuilt/plattsburgh_region.scn"

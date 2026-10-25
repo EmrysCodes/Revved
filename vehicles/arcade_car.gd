@@ -168,10 +168,19 @@ func _try_small_step(motion: Vector3) -> void:
 	if max_step_height <= 0.0 or motion.length_squared() < 0.000001:
 		return
 	var obstacle := KinematicCollision3D.new()
-	if not test_move(global_transform, motion, obstacle):
-		return
-	if obstacle.get_normal().dot(Vector3.UP) >= cos(floor_max_angle):
-		return
+	var blocked_ahead:=test_move(global_transform, motion, obstacle)
+	# Jolt can report the road beneath the car before the curb touching its nose.
+	# Inspect every contact instead of discarding a valid step on the first floor hit.
+	var wall:=false
+	if blocked_ahead:
+		for index in range(obstacle.get_collision_count()):
+			if obstacle.get_normal(index).dot(Vector3.UP)<cos(floor_max_angle):wall=true;break
+	for index in range(get_slide_collision_count()):
+		var normal:=get_slide_collision(index).get_normal()
+		if normal.dot(Vector3.UP)<cos(floor_max_angle) and normal.dot(motion)<-.000001:wall=true;break
+	# A shallow curb bevel is itself a floor contact. It can still pin the front
+	# of the wide chassis against the road beneath it, so probe that contact too.
+	if not wall and not blocked_ahead:return
 	var lift := Vector3.UP * max_step_height
 	if test_move(global_transform, lift):
 		return

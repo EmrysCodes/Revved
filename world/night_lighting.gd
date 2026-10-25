@@ -67,7 +67,10 @@ func _process(delta: float) -> void:
 	if clock < 0.35: return
 	clock = 0.0
 	var life := get_parent().get_node_or_null("CityLife")
-	if life and lamp_positions.is_empty(): lamp_positions = life.lamp_positions
+	if life and lamp_positions.is_empty():
+		lamp_positions = life.lamp_positions.duplicate()
+		var detail := get_parent().get_node_or_null("DowntownDetail")
+		if detail: lamp_positions.append_array(detail.lamp_positions)
 	var camera := get_viewport().get_camera_3d()
 	if not camera: return
 	var origin := camera.global_position

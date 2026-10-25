@@ -7,7 +7,7 @@ func touch(controls: Control,id: int,key: String,down: bool) -> void:
 	controls.call("_input",event)
 func run() -> void:
 	root.get_node("StreetProfile").touch_mode=1
-	var city: Node3D=load("res://scenes/hartford_district.tscn").instantiate();root.add_child(city)
+	var city: Node3D=load("res://world/handbuilt/plattsburgh_region.scn").instantiate();city.set_meta("disable_population",true);root.add_child(city)
 	for i in range(12): await physics_frame
 	var car: CharacterBody3D=city.car
 	var controls: Control=car.get_node("HUD/Screen/TouchControls")
